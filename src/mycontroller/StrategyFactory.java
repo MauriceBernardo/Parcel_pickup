@@ -8,4 +8,8 @@ public class StrategyFactory {
         }
         return instance;
     }
+
+    public MoveStrategy getMoveStrategy() {
+        return new LatchingStrategy();
+    }
 }
