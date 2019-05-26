@@ -5,7 +5,7 @@ import world.WorldSpatial;
 
 import java.util.LinkedList;
 
-public abstract class PointToPoint implements MoveStrategy{
+public abstract class PointToPoint implements MoveStrategy {
     private boolean completed = false;
     private boolean backtrack;
     private Coordinate destination;
@@ -97,7 +97,6 @@ public abstract class PointToPoint implements MoveStrategy{
         }
 
         // Decide the move command and the reverse command
-        reverseCommand.push(Command.BRAKE);
         while (!clonePathCoordinate.isEmpty()) {
             Coordinate destCoordinate = clonePathCoordinate.remove();
 
@@ -128,14 +127,22 @@ public abstract class PointToPoint implements MoveStrategy{
         }
 
         moveCommand.add(Command.BRAKE);
+
+
+        // Process the reverse command
+        reverseCommand.push(reverseCommand.removeLast());
+        reverseCommand.add(Command.BRAKE);
+
     }
 
     // Apply the command from the set of move command
-    public void applyCommand(MyAutoController carController){
+    public void applyCommand(MyAutoController carController) {
+        System.out.println(moveCommand);
+        System.out.println(reverseCommand);
         Command command;
-        if(moveCommand.isEmpty() && !reverseCommand.isEmpty() && backtrack){
+        if (moveCommand.isEmpty() && !reverseCommand.isEmpty() && backtrack) {
             command = reverseCommand.remove();
-        } else if (!moveCommand.isEmpty()){
+        } else if (!moveCommand.isEmpty()) {
             command = moveCommand.remove();
         } else {
             command = Command.NO_COMMAND;
@@ -271,7 +278,7 @@ public abstract class PointToPoint implements MoveStrategy{
     }
 
     // Apply the reverse command
-    public void applyReverseCommand(){
+    public void applyReverseCommand() {
         moveCommand = reverseCommand;
         completed = false;
     }
