@@ -1,15 +1,10 @@
 package mycontroller;
 
-import com.badlogic.gdx.Input;
 import controller.CarController;
 import swen30006.driving.Simulation;
 import tiles.TrapTile;
 import world.Car;
-
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
-
 import tiles.MapTile;
 import utilities.Coordinate;
 import world.World;
@@ -19,6 +14,9 @@ public class MyAutoController extends CarController {
     // Car explored map
     private HashMap<Coordinate, MapTile> localMap = new HashMap<>();
 
+    // TODO: delete later
+    private MoveStrategy moveStrategy = StrategyFactory.getInstance().getMoveStrategy();
+  
     public MyAutoController(Car car) {
         super(car);
         if (Simulation.toConserve() == Simulation.StrategyMode.FUEL) {
@@ -65,6 +63,8 @@ public class MyAutoController extends CarController {
             }
             System.out.println();
         }
+        // alvin's (to delete later)
+        moveStrategy.move(this);
     }
 
     private void updateLocalMap(HashMap<Coordinate, MapTile> currentView) {
