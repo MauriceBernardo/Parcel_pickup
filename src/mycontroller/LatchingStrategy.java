@@ -7,14 +7,13 @@ import world.WorldSpatial;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class LatchingStrategy implements MoveStrategy {
-    //TODO: complete function & starting direction arg
+public class LatchingStrategy extends ExploringMove {
     private int wallSensitivity = 1;
+    private Coordinate initialCoordinate = null;
+    private boolean reversing = false;
 
-    private ArrayList<String> latchingTrapTypes;
-
-    public LatchingStrategy() {
-        latchingTrapTypes = new ArrayList<>();
+    public LatchingStrategy(ArrayList<String> wallTrapTypes) {
+        super(wallTrapTypes);
     }
 
     @Override
@@ -22,19 +21,64 @@ public class LatchingStrategy implements MoveStrategy {
         WorldSpatial.Direction orientation = carController.getOrientation();
         HashMap<Coordinate, MapTile> currentView = carController.getView();
         String currPos = carController.getPosition();
+        Coordinate currentPosition = new Coordinate(currPos);
 
-        if (!checkFollowingWall(orientation, currentView, currPos)) {
-            findWallToAttach(carController);
-        }
-        else {
-            if (checkWallAhead(orientation, currentView, currPos)) {
-                findWayOut(carController);
+        if (!isCompleted()) {
+            carController.applyForwardAcceleration();
+
+            if (!checkFollowingWall(orientation, currentView, currPos)) {
+                if (this.initialCoordinate == null) {
+                    findInitialWallToAttach(carController);
+                } else {
+                    findWallToAttach(carController);
+                }
+
+            }
+            else {
+                if (checkWallAhead(orientation, currentView, currPos) || this.reversing) {
+                    findWayOut(carController);
+                }
+            }
+
+            if (currentPosition.equals(this.initialCoordinate)) {
+                if (getWallTrapTypes().size() != 0) {
+                    int priorityRemoveIndex = getPriorityRemoveIndex();
+
+                    getWallTrapTypes().remove(priorityRemoveIndex);
+
+                } else {
+                    this.setCompleted();
+                    carController.applyBrake();
+
+                }
+
+            } else if (this.initialCoordinate == null && checkFollowingWall(orientation, currentView, currPos)) {
+                this.initialCoordinate = new Coordinate(currentPosition.x, currentPosition.y);
             }
         }
     }
 
-    public void addTrap(String trapType) {
-        latchingTrapTypes.add(trapType);
+
+
+    private void findInitialWallToAttach(MyAutoController carController) {
+        WorldSpatial.Direction orientation = carController.getOrientation();
+        HashMap<Coordinate, MapTile> currentView = carController.getView();
+        String currPos = carController.getPosition();
+
+        switch(orientation) {
+            case EAST:
+                if (!checkWallAhead(orientation, currentView, currPos)) {
+                    carController.turnRight();
+                }
+                break;
+            case NORTH: case SOUTH: case WEST:
+                if (checkWallAhead(orientation, currentView, currPos)) {
+                    carController.turnLeft();
+                }
+                break;
+            default:
+                break;
+        }
     }
 
     private void findWallToAttach(MyAutoController carController) {
@@ -46,8 +90,6 @@ public class LatchingStrategy implements MoveStrategy {
             case EAST:
                 if (!checkWallAhead(orientation, currentView, currPos)) {
                     carController.turnRight();
-                } else {
-                    carController.turnLeft();
                 }
                 break;
             case NORTH:
@@ -84,87 +126,92 @@ public class LatchingStrategy implements MoveStrategy {
 
         switch(orientation) {
             case EAST:
-                if (!checkNorth(currentView, currPos)) {
+                if (!checkNorth(currentView, currPos) && !this.reversing) {
                     carController.turnLeft();
-                } else if (!checkSouth(currentView, currPos)) {
+                } else if (!checkSouth(currentView, currPos) && !this.reversing) {
                     carController.turnRight();
                 } else {
                     // stuck in the edge
                     carController.applyReverseAcceleration();
+                    this.reversing = true;
+
                     if (!checkSouth(currentView, currPos)) {
-                        carController.turnRight();
-                        carController.applyBrake();
-                        carController.applyForwardAcceleration();
                         carController.turnLeft();
+                        carController.applyBrake();
+                        this.reversing = false;
+
                     } else if (!checkNorth(currentView, currPos)) {
-                        carController.turnLeft();
-                        carController.applyBrake();
-                        carController.applyForwardAcceleration();
                         carController.turnRight();
+                        carController.applyBrake();
+                        this.reversing = false;
+
                     }
                 }
                 break;
 
             case NORTH:
-                if (!checkWest(currentView, currPos)) {
+                if (!checkWest(currentView, currPos) && !this.reversing) {
                     carController.turnLeft();
-                } else if (!checkEast(currentView, currPos)) {
+                } else if (!checkEast(currentView, currPos) && !this.reversing) {
                     carController.turnRight();
                 } else {
                     // stuck in the edge
                     carController.applyReverseAcceleration();
+                    this.reversing = true;
+
                     if (!checkWest(currentView, currPos)) {
-                        carController.turnLeft();
-                        carController.applyBrake();
-                        carController.applyForwardAcceleration();
                         carController.turnRight();
+                        carController.applyBrake();
+                        this.reversing = false;
+
                     } else if (!checkEast(currentView, currPos)) {
-                        carController.turnRight();
-                        carController.applyBrake();
-                        carController.applyForwardAcceleration();
                         carController.turnLeft();
+                        carController.applyBrake();
+                        this.reversing = false;
                     }
                 }
                 break;
 
             case SOUTH:
-                if (!checkEast(currentView, currPos)) {
+                if (!checkEast(currentView, currPos) && !this.reversing) {
                     carController.turnLeft();
-                } else if (!checkWest(currentView, currPos)) {
+                } else if (!checkWest(currentView, currPos) && !this.reversing) {
                     carController.turnRight();
                 } else {
                     carController.applyReverseAcceleration();
+                    this.reversing = true;
+
                     if (!checkWest(currentView, currPos)) {
-                        carController.turnRight();
-                        carController.applyBrake();
-                        carController.applyForwardAcceleration();
                         carController.turnLeft();
+                        carController.applyBrake();
+                        this.reversing = false;
+
                     } else if (!checkEast(currentView, currPos)) {
-                        carController.turnLeft();
-                        carController.applyBrake();
-                        carController.applyForwardAcceleration();
                         carController.turnRight();
+                        carController.applyBrake();
+                        this.reversing = false;
                     }
                 }
                 break;
 
             case WEST:
-                if (!checkSouth(currentView, currPos)) {
+                if (!checkSouth(currentView, currPos) && !this.reversing) {
                     carController.turnLeft();
-                } else if (!checkNorth(currentView, currPos)) {
+                } else if (!checkNorth(currentView, currPos) && !this.reversing) {
                     carController.turnRight();
                 } else {
                     carController.applyReverseAcceleration();
+                    this.reversing = true;
+
                     if (!checkSouth(currentView, currPos)) {
-                        carController.turnLeft();
-                        carController.applyBrake();
-                        carController.applyForwardAcceleration();
                         carController.turnRight();
+                        carController.applyBrake();
+                        this.reversing = false;
+
                     } else if (!checkNorth(currentView, currPos)) {
-                        carController.turnRight();
-                        carController.applyBrake();
-                        carController.applyForwardAcceleration();
                         carController.turnLeft();
+                        carController.applyBrake();
+                        this.reversing = false;
                     }
                 }
                 break;
@@ -287,7 +334,7 @@ public class LatchingStrategy implements MoveStrategy {
             trapType = getTrapType(tile);
         }
 
-        for (String latchingTrapType: latchingTrapTypes) {
+        for (String latchingTrapType: getWallTrapTypes()) {
             if (trapType.equals(latchingTrapType)) {
                 return true;
             }
@@ -297,12 +344,39 @@ public class LatchingStrategy implements MoveStrategy {
 
     private String getTrapType(MapTile tile) {
         if (tile instanceof LavaTrap) {
-            return "lava";
+            TrapTile lavaTrap = new LavaTrap();
+            return lavaTrap.getTrap();
         } else if (tile instanceof WaterTrap) {
-            return "water";
+            TrapTile waterTrap = new WaterTrap();
+            return waterTrap.getTrap();
         } else if (tile instanceof HealthTrap) {
-            return "ice";
+            TrapTile healthTrap = new HealthTrap();
+            return healthTrap.getTrap();
         }
         return "other";
+    }
+
+    private int getPriorityRemoveIndex() {
+        final int HEALTH_REMOVE_PRIORITY_LEVEL = 3;
+        final int WATER_REMOVE_PRIORITY_LEVEL = 2;
+        final int LAVA_REMOVE_PRIORITY_LEVEL = 1;
+
+        int currPos = -1;
+        int currPriorityLevel = -1;
+
+        for (int i = 0; i<getWallTrapTypes().size(); i++) {
+            if (getWallTrapTypes().get(i).equals("health")) {
+                currPos = i;
+                currPriorityLevel = HEALTH_REMOVE_PRIORITY_LEVEL;
+            } else if (getWallTrapTypes().get(i).equals("water") && (currPriorityLevel < WATER_REMOVE_PRIORITY_LEVEL)) {
+                currPos = i;
+                currPriorityLevel = WATER_REMOVE_PRIORITY_LEVEL;
+            } else if (getWallTrapTypes().get(i).equals("lava") && (currPriorityLevel < LAVA_REMOVE_PRIORITY_LEVEL)) {
+                currPos = i;
+                currPriorityLevel = LAVA_REMOVE_PRIORITY_LEVEL;
+            }
+        }
+
+        return currPos;
     }
 }
