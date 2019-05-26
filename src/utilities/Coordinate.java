@@ -34,7 +34,23 @@ public class Coordinate {
 	public String toString(){
 		return x+","+y;
 	}
-	
+
+	public String getLeftCoordinate(){
+		return (x-1)+","+y;
+	}
+
+	public String getRightCoordinate(){
+		return (x+1)+","+y;
+	}
+
+	public String getUpCoordinate(){
+		return x+","+(y+1);
+	}
+
+	public String getDownCoordinate(){
+		return x+","+(y-1);
+	}
+
 	
 	/**
 	 * Defined in order to use it as keys in a hashmap
