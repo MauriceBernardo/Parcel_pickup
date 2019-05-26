@@ -2,7 +2,6 @@ package mycontroller;
 
 import utilities.Coordinate;
 import world.WorldSpatial;
-
 import java.util.LinkedList;
 
 public abstract class PointToPoint implements MoveStrategy {
@@ -13,24 +12,24 @@ public abstract class PointToPoint implements MoveStrategy {
     private LinkedList<Command> moveCommand = new LinkedList<>();
     private LinkedList<Command> reverseCommand = new LinkedList<>();
 
-    // Class for the point to point algorithm
-    public class Point {
-        int weight;
-        Source source;
-        Coordinate coordinate;
+    // Class for the point to point strategy
+    public static class Point {
+        public int weight;
+        public Source source;
+        public Coordinate coordinate;
 
         public Point(int weight, Source source, Coordinate coordinate) {
             this.weight = weight;
             this.source = source;
             this.coordinate = coordinate;
         }
+
+        public enum Source {
+            DOWN, LEFT, ORIGIN, RIGHT, UP, IMPASSABLE
+        }
     }
 
-    enum Source {
-        DOWN, LEFT, ORIGIN, RIGHT, UP, IMPASSABLE
-    }
-
-    enum Command {
+    public enum Command {
         FORWARD, LEFT, RIGHT, REVERSE, BRAKE, NO_COMMAND
     }
 

@@ -4,7 +4,6 @@ import tiles.MapTile;
 import tiles.TrapTile;
 import utilities.Coordinate;
 import world.WorldSpatial;
-
 import java.util.*;
 
 public class WeightedRoute extends PointToPoint {
@@ -43,7 +42,7 @@ public class WeightedRoute extends PointToPoint {
     // Get the shortest path coordinates base on the Dijkstra
     private boolean getShortestPathCoordinates() {
         Point nextPoint = weightMap.get(this.getDestination());
-        while (nextPoint.source != Source.ORIGIN) {
+        while (nextPoint.source != Point.Source.ORIGIN) {
             this.getPathCoordinate().push(nextPoint.coordinate);
             switch (nextPoint.source) {
                 case UP:
@@ -70,13 +69,13 @@ public class WeightedRoute extends PointToPoint {
     // Dijkstra's algorithm
     private void calculateLocalMapWeight(HashMap<Coordinate, MapTile> localMap, String carPosition, WorldSpatial.Direction carOrientation) {
         Coordinate initialCoordinate = new Coordinate(carPosition);
-        Point originPoint = new Point(0, Source.ORIGIN, initialCoordinate);
+        Point originPoint = new Point(0, Point.Source.ORIGIN, initialCoordinate);
         ArrayList<Point> queue = new ArrayList<>();
         queue.add(originPoint);
 
         // Initialize all point as unreachable
         for (Coordinate coordinate : localMap.keySet()) {
-            Point otherPoint = new Point(UNREACHABLE, Source.IMPASSABLE, coordinate);
+            Point otherPoint = new Point(UNREACHABLE, Point.Source.IMPASSABLE, coordinate);
             if (!originPoint.coordinate.equals(otherPoint.coordinate)) {
                 queue.add(otherPoint);
             }
@@ -103,7 +102,7 @@ public class WeightedRoute extends PointToPoint {
 
 
             // Calculate the distance of each coordinates
-            if (nextPoint.source == Source.ORIGIN) {
+            if (nextPoint.source == Point.Source.ORIGIN) {
                 // Check depend on orientation
 
                 // Horizontal checking
@@ -136,28 +135,27 @@ public class WeightedRoute extends PointToPoint {
                 southDist = calculateDist(localMap.get(southCoordinate));
             }
 
-            // TODO: maybe can be made smaller by putting it to function
             // update weight and source
             for (Point target : queue) {
                 if (target.coordinate.equals(eastCoordinate)) {
                     if (target.weight > nextPoint.weight + eastDist) {
                         target.weight = nextPoint.weight + eastDist;
-                        target.source = Source.LEFT;
+                        target.source = Point.Source.LEFT;
                     }
                 } else if (target.coordinate.equals(westCoordinate)) {
                     if (target.weight > nextPoint.weight + westDist) {
                         target.weight = nextPoint.weight + westDist;
-                        target.source = Source.RIGHT;
+                        target.source = Point.Source.RIGHT;
                     }
                 } else if (target.coordinate.equals(northCoordinate)) {
                     if (target.weight > nextPoint.weight + northDist) {
                         target.weight = nextPoint.weight + northDist;
-                        target.source = Source.DOWN;
+                        target.source = Point.Source.DOWN;
                     }
                 } else if (target.coordinate.equals(southCoordinate)) {
                     if (target.weight > nextPoint.weight + southDist) {
                         target.weight = nextPoint.weight + southDist;
-                        target.source = Source.UP;
+                        target.source = Point.Source.UP;
                     }
                 }
             }
