@@ -137,8 +137,6 @@ public abstract class PointToPoint implements MoveStrategy {
 
     // Apply the command from the set of move command
     public void applyCommand(MyAutoController carController) {
-        System.out.println(moveCommand);
-        System.out.println(reverseCommand);
         Command command;
         if (moveCommand.isEmpty() && !reverseCommand.isEmpty() && backtrack) {
             command = reverseCommand.remove();
@@ -275,11 +273,5 @@ public abstract class PointToPoint implements MoveStrategy {
                 break;
         }
         return false;
-    }
-
-    // Apply the reverse command
-    public void applyReverseCommand() {
-        moveCommand = reverseCommand;
-        completed = false;
     }
 }
