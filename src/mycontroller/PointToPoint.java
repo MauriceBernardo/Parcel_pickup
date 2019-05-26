@@ -7,9 +7,11 @@ import java.util.LinkedList;
 
 public abstract class PointToPoint implements MoveStrategy{
     private boolean completed = false;
+    private boolean backtrack;
     private Coordinate destination;
     private LinkedList<Coordinate> pathCoordinate = new LinkedList<>();
     private LinkedList<Command> moveCommand = new LinkedList<>();
+    private LinkedList<Command> reverseCommand = new LinkedList<>();
 
     // Class for the point to point algorithm
     public class Point {
@@ -29,15 +31,17 @@ public abstract class PointToPoint implements MoveStrategy{
     }
 
     enum Command {
-        FORWARD, LEFT, RIGHT, REVERSE, BRAKE
+        FORWARD, LEFT, RIGHT, REVERSE, BRAKE, NO_COMMAND
     }
 
-    public PointToPoint(Coordinate destination) {
+    public PointToPoint(Coordinate destination, boolean backtrack) {
         this.destination = destination;
+        this.backtrack = backtrack;
     }
 
-    public PointToPoint(int destX, int destY) {
+    public PointToPoint(int destX, int destY, boolean backtrack) {
         this.destination = new Coordinate(destX, destY);
+        this.backtrack = backtrack;
     }
 
     public Coordinate getDestination() {
@@ -61,9 +65,9 @@ public abstract class PointToPoint implements MoveStrategy{
         return this.completed;
     }
 
-    // Translate the set of coordinates made into move command
+    // Translate the set of coordinates made into move command and the reverse move command
     public void translateToMoveCommand(WorldSpatial.Direction orientation) {
-        LinkedList<Coordinate> clonePathCoordinate = new LinkedList<>(getPathCoordinate());
+        LinkedList<Coordinate> clonePathCoordinate = new LinkedList<>(pathCoordinate);
         Coordinate sourceCoordinate = clonePathCoordinate.remove();
 
         // Assume using forward translation algorithm
@@ -92,38 +96,50 @@ public abstract class PointToPoint implements MoveStrategy{
             }
         }
 
-        // Decide the move command
+        // Decide the move command and the reverse command
+        reverseCommand.push(Command.BRAKE);
         while (!clonePathCoordinate.isEmpty()) {
             Coordinate destCoordinate = clonePathCoordinate.remove();
 
             if (checkForward(sourceCoordinate, destCoordinate, lastDirection)) {
-                getMoveCommand().add(Command.FORWARD);
+                moveCommand.add(Command.FORWARD);
+                reverseCommand.push(Command.REVERSE);
             } else if (checkReverse(sourceCoordinate, destCoordinate, lastDirection)) {
-                getMoveCommand().add(Command.REVERSE);
+                moveCommand.add(Command.REVERSE);
+                reverseCommand.push(Command.FORWARD);
             } else if (checkLeft(sourceCoordinate, destCoordinate, lastDirection)) {
                 if (forward) {
                     lastDirection = WorldSpatial.changeDirection(lastDirection, WorldSpatial.RelativeDirection.LEFT);
                 } else {
                     lastDirection = WorldSpatial.reverseDirection(WorldSpatial.changeDirection(lastDirection, WorldSpatial.RelativeDirection.LEFT));
                 }
-                getMoveCommand().add(Command.LEFT);
+                moveCommand.add(Command.LEFT);
+                reverseCommand.push(Command.LEFT);
             } else if (checkRight(sourceCoordinate, destCoordinate, lastDirection)) {
                 if (forward) {
                     lastDirection = WorldSpatial.changeDirection(lastDirection, WorldSpatial.RelativeDirection.RIGHT);
                 } else {
                     lastDirection = WorldSpatial.reverseDirection(WorldSpatial.changeDirection(lastDirection, WorldSpatial.RelativeDirection.RIGHT));
                 }
-                getMoveCommand().add(Command.RIGHT);
+                moveCommand.add(Command.RIGHT);
+                reverseCommand.push(Command.RIGHT);
             }
             sourceCoordinate = destCoordinate;
         }
 
-        getMoveCommand().add(Command.BRAKE);
+        moveCommand.add(Command.BRAKE);
     }
 
     // Apply the command from the set of move command
-    public void applyCommand(MyAutoController carController, LinkedList<Command> moveCommand){
-        Command command = moveCommand.remove();
+    public void applyCommand(MyAutoController carController){
+        Command command;
+        if(moveCommand.isEmpty() && !reverseCommand.isEmpty() && backtrack){
+            command = reverseCommand.remove();
+        } else if (!moveCommand.isEmpty()){
+            command = moveCommand.remove();
+        } else {
+            command = Command.NO_COMMAND;
+        }
         switch (command) {
             case FORWARD:
                 carController.applyForwardAcceleration();
@@ -139,6 +155,9 @@ public abstract class PointToPoint implements MoveStrategy{
                 break;
             case BRAKE:
                 carController.applyBrake();
+                break;
+            default:
+                setCompleted();
                 break;
         }
     }
@@ -249,5 +268,11 @@ public abstract class PointToPoint implements MoveStrategy{
                 break;
         }
         return false;
+    }
+
+    // Apply the reverse command
+    public void applyReverseCommand(){
+        moveCommand = reverseCommand;
+        completed = false;
     }
 }

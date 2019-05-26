@@ -14,12 +14,12 @@ public class WeightedRoute extends PointToPoint {
 
     private HashMap<Coordinate, Point> weightMap = new HashMap<>();
 
-    public WeightedRoute(Coordinate destination) {
-        super(destination);
+    public WeightedRoute(Coordinate destination, boolean backtrack) {
+        super(destination, backtrack);
     }
 
-    public WeightedRoute(int destX, int destY) {
-        super(destX, destY);
+    public WeightedRoute(int destX, int destY, boolean backtrack) {
+        super(destX, destY, backtrack);
     }
 
     @Override
@@ -33,12 +33,10 @@ public class WeightedRoute extends PointToPoint {
                 setCompleted();
                 System.out.println("YO MAN CAN'T MOVE");
             }
-        } else {
-            if(getMoveCommand().isEmpty()){
-                setCompleted();
-            } else {
-                applyCommand(carController, getMoveCommand());
-            }
+        }
+
+        if (initialized) {
+            applyCommand(carController);
         }
     }
 
