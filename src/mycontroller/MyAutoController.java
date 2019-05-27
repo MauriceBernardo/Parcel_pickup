@@ -4,23 +4,28 @@ import controller.CarController;
 import swen30006.driving.Simulation;
 import tiles.TrapTile;
 import world.Car;
+
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
+
 import tiles.MapTile;
 import utilities.Coordinate;
-import world.World;
-import world.WorldSpatial;
 
 public class MyAutoController extends CarController {
     // Car explored map
     private HashMap<Coordinate, MapTile> localMap = new HashMap<>();
 
-    // TODO: delete later
-    private MoveStrategy moveStrategy = StrategyFactory.getInstance().getMoveStrategy();
-  
+    // Advisor to move depending on the strategy
+	private Advisor moveAdvisor;
+
     public MyAutoController(Car car) {
         super(car);
         if (Simulation.toConserve() == Simulation.StrategyMode.FUEL) {
-        }
+        	this.moveAdvisor = new FuelAdvisor();
+        } else if (Simulation.toConserve() == Simulation.StrategyMode.HEALTH){
+        	this.moveAdvisor = new HealthAdvisor();
+		}
 
         // Initialisation of localMap
         int maxWidth = mapWidth();
@@ -63,9 +68,11 @@ public class MyAutoController extends CarController {
             }
             System.out.println();
         }
-        // alvin's (to delete later)
-        moveStrategy.move(this);
+
+        // Move depending on the optimization
+		moveAdvisor.update(this);
     }
+
 
     private void updateLocalMap(HashMap<Coordinate, MapTile> currentView) {
         Coordinate carPosition = new Coordinate(getPosition());
@@ -75,6 +82,31 @@ public class MyAutoController extends CarController {
                 this.localMap.put(viewCoordinate, currentView.get(viewCoordinate));
             }
         }
+    }
+
+    public LinkedList<Coordinate> getParcelCoordinates(){
+        LinkedList<Coordinate> parcelCoordinates = new LinkedList<>();
+        for (Coordinate coordinate : localMap.keySet()){
+            if(localMap.get(coordinate).getType() == MapTile.Type.TRAP){
+                TrapTile trapTile = (TrapTile) localMap.get(coordinate);
+                if(trapTile.getTrap().equals("parcel")){
+                    parcelCoordinates.add(coordinate);
+                }
+            }
+        }
+
+        return parcelCoordinates;
+    }
+
+    public LinkedList<Coordinate> getFinishCoordinates(){
+        LinkedList<Coordinate> finishCoordinates = new LinkedList<>();
+        for (Coordinate coordinate : localMap.keySet()){
+            if(localMap.get(coordinate).getType() == MapTile.Type.FINISH){
+                finishCoordinates.add(coordinate);
+            }
+        }
+
+        return finishCoordinates;
     }
 
     public HashMap<Coordinate, MapTile> getLocalMap() {

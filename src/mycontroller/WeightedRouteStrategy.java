@@ -4,36 +4,42 @@ import tiles.MapTile;
 import tiles.TrapTile;
 import utilities.Coordinate;
 import world.WorldSpatial;
+
 import java.util.*;
 
-public class WeightedRoute extends PointToPoint {
+public class WeightedRouteStrategy extends PointToPointMove {
     private static final int UNREACHABLE = 1000;
 
     private boolean initialized = false;
 
     private HashMap<Coordinate, Point> weightMap = new HashMap<>();
+    private HashMap<String, Integer> tileWeight;
 
-    public WeightedRoute(Coordinate destination, boolean backtrack) {
-        super(destination, backtrack);
-    }
+    public WeightedRouteStrategy(Coordinate destination, boolean backtrack, MyAutoController carController, HashMap<String, Integer> tileWeight) {
+        super(destination, backtrack, carController);
+        if(tileWeight != null){
+            this.tileWeight = tileWeight;
+        } else {
+            // Put default weight for the algorithm
+            this.tileWeight = new HashMap<>();
+            this.tileWeight.put("lava", 5);
+            this.tileWeight.put("health", 1);
+            this.tileWeight.put("water", 1);
+            this.tileWeight.put("road", 2);
+        }
 
-    public WeightedRoute(int destX, int destY, boolean backtrack) {
-        super(destX, destY, backtrack);
+        calculateLocalMapWeight(getLocalMap(), getSource(), getInitialOrientation());
+        if (getShortestPathCoordinates()) {
+            translateToMoveCommand(carController.getOrientation());
+            initialized = true;
+        } else {
+            setCompleted();
+        }
+
     }
 
     @Override
     public void move(MyAutoController carController) {
-        if (!initialized) {
-            calculateLocalMapWeight(carController.getLocalMap(), carController.getPosition(), carController.getOrientation());
-            if (getShortestPathCoordinates()) {
-                translateToMoveCommand(carController.getOrientation());
-                initialized = true;
-            } else {
-                setCompleted();
-                System.out.println("YO MAN CAN'T MOVE");
-            }
-        }
-
         if (initialized) {
             applyCommand(carController);
         }
@@ -67,8 +73,7 @@ public class WeightedRoute extends PointToPoint {
     }
 
     // Dijkstra's algorithm
-    private void calculateLocalMapWeight(HashMap<Coordinate, MapTile> localMap, String carPosition, WorldSpatial.Direction carOrientation) {
-        Coordinate initialCoordinate = new Coordinate(carPosition);
+    private void calculateLocalMapWeight(HashMap<Coordinate, MapTile> localMap, Coordinate initialCoordinate, WorldSpatial.Direction carOrientation) {
         Point originPoint = new Point(0, Point.Source.ORIGIN, initialCoordinate);
         ArrayList<Point> queue = new ArrayList<>();
         queue.add(originPoint);
@@ -165,25 +170,19 @@ public class WeightedRoute extends PointToPoint {
         }
     }
 
-    // TODO: can change depending optimization
     private int calculateDist(MapTile destination) {
         if (destination == null) {
             return UNREACHABLE;
         }
 
         switch (destination.getType()) {
+            case EMPTY:
             case WALL:
                 return UNREACHABLE;
             case TRAP:
-                if (((TrapTile) destination).getTrap().equals("lava")) {
-                    return 5;
-                } else if (((TrapTile) destination).getTrap().equals("water")) {
-                    return 1;
-                }
-            case EMPTY:
-                return UNREACHABLE;
+                return tileWeight.get(((TrapTile) destination).getTrap());
             default:
-                return 2;
+                return tileWeight.get("road");
         }
     }
 

@@ -1,13 +1,19 @@
 package mycontroller;
 
+import tiles.MapTile;
 import utilities.Coordinate;
 import world.WorldSpatial;
+
+import java.util.HashMap;
 import java.util.LinkedList;
 
-public abstract class PointToPoint implements MoveStrategy {
+public abstract class PointToPointMove implements MoveStrategy {
     private boolean completed = false;
     private boolean backtrack;
     private Coordinate destination;
+    private Coordinate source;
+    private HashMap<Coordinate, MapTile> localMap;
+    private WorldSpatial.Direction initialOrientation;
     private LinkedList<Coordinate> pathCoordinate = new LinkedList<>();
     private LinkedList<Command> moveCommand = new LinkedList<>();
     private LinkedList<Command> reverseCommand = new LinkedList<>();
@@ -33,14 +39,24 @@ public abstract class PointToPoint implements MoveStrategy {
         FORWARD, LEFT, RIGHT, REVERSE, BRAKE, NO_COMMAND
     }
 
-    public PointToPoint(Coordinate destination, boolean backtrack) {
+    public PointToPointMove(Coordinate destination, boolean backtrack, MyAutoController carController) {
         this.destination = destination;
         this.backtrack = backtrack;
+        this.localMap = carController.getLocalMap();
+        this.source = new Coordinate(carController.getPosition());
+        this.initialOrientation = carController.getOrientation();
     }
 
-    public PointToPoint(int destX, int destY, boolean backtrack) {
-        this.destination = new Coordinate(destX, destY);
-        this.backtrack = backtrack;
+    public Coordinate getSource() {
+        return source;
+    }
+
+    public HashMap<Coordinate, MapTile> getLocalMap() {
+        return localMap;
+    }
+
+    public WorldSpatial.Direction getInitialOrientation() {
+        return initialOrientation;
     }
 
     public Coordinate getDestination() {
