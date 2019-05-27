@@ -20,7 +20,7 @@ public class StrategyFactory {
         WEIGHTED
     }
 
-    public MoveStrategy getExploringMove(ExploringMoveType type, ArrayList<String> wallTrapTypes) {
+    public ExploringMove getExploringMove(ExploringMoveType type, ArrayList<String> wallTrapTypes) {
         switch (type){
             case LATCHING:
                 return new LatchingStrategy(wallTrapTypes);
@@ -31,7 +31,7 @@ public class StrategyFactory {
         }
     }
 
-    public MoveStrategy getPointToPointMove(PointToPointMoveType type, Coordinate destination, boolean backtrack, HashMap<String,Integer> tileWeight, MyAutoController carController){
+    public PointToPointMove  getPointToPointMove(PointToPointMoveType type, Coordinate destination, boolean backtrack, HashMap<String,Integer> tileWeight, MyAutoController carController){
         switch (type){
             case WEIGHTED:
                 return new WeightedRouteStrategy(destination, backtrack, carController, tileWeight);
