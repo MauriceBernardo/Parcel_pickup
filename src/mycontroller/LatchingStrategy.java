@@ -90,25 +90,49 @@ public class LatchingStrategy extends ExploringMove {
             case EAST:
                 if (!checkWallAhead(orientation, currentView, currPos)) {
                     carController.turnRight();
+                } else {
+                    if (carController.getSpeed() == 0) {
+                        carController.applyReverseAcceleration();
+                        carController.applyBrake();
+                    } else {
+                        carController.turnLeft();
+                    }
                 }
                 break;
             case NORTH:
-                if (checkWallAhead(orientation, currentView, currPos)) {
-                    carController.turnLeft();
-                } else if (!checkEast(currentView, currPos)) {
+                if (checkWallAhead(orientation, currentView, currPos) && carController.getSpeed() > 0) {
+                    if (carController.getSpeed() != 0) {
+                        carController.turnLeft();
+                    } else {
+                        carController.applyReverseAcceleration();
+                        carController.applyBrake();
+                    }
+                }
+                else if (!checkEast(currentView, currPos)) {
                     carController.turnRight();
                 }
                 break;
             case SOUTH:
                 if (checkWallAhead(orientation, currentView, currPos)) {
-                    carController.turnLeft();
+                    System.out.println("Hello1");
+                    if (carController.getSpeed() != 0) {
+                        carController.turnLeft();
+                    } else {
+                        carController.applyReverseAcceleration();
+                        carController.applyBrake();
+                    }
                 } else if (!checkWest(currentView, currPos)) {
                     carController.turnRight();
                 }
                 break;
             case WEST:
                 if (checkWallAhead(orientation, currentView, currPos)) {
-                    carController.turnLeft();
+                    if (carController.getSpeed() != 0) {
+                        carController.turnLeft();
+                    } else {
+                        carController.applyReverseAcceleration();
+                        carController.applyBrake();
+                    }
                 } else if (!checkNorth(currentView, currPos)) {
                     carController.turnRight();
                 }
