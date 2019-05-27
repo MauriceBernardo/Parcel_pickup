@@ -126,9 +126,9 @@ public class LatchingStrategy extends ExploringMove {
 
         switch(orientation) {
             case EAST:
-                if (!checkNorth(currentView, currPos) && !this.reversing) {
+                if (!checkNorth(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
                     carController.turnLeft();
-                } else if (!checkSouth(currentView, currPos) && !this.reversing) {
+                } else if (!checkSouth(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
                     carController.turnRight();
                 } else {
                     // stuck in the edge
@@ -150,9 +150,9 @@ public class LatchingStrategy extends ExploringMove {
                 break;
 
             case NORTH:
-                if (!checkWest(currentView, currPos) && !this.reversing) {
+                if (!checkWest(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
                     carController.turnLeft();
-                } else if (!checkEast(currentView, currPos) && !this.reversing) {
+                } else if (!checkEast(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
                     carController.turnRight();
                 } else {
                     // stuck in the edge
@@ -173,9 +173,9 @@ public class LatchingStrategy extends ExploringMove {
                 break;
 
             case SOUTH:
-                if (!checkEast(currentView, currPos) && !this.reversing) {
+                if (!checkEast(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
                     carController.turnLeft();
-                } else if (!checkWest(currentView, currPos) && !this.reversing) {
+                } else if (!checkWest(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
                     carController.turnRight();
                 } else {
                     carController.applyReverseAcceleration();
@@ -195,9 +195,9 @@ public class LatchingStrategy extends ExploringMove {
                 break;
 
             case WEST:
-                if (!checkSouth(currentView, currPos) && !this.reversing) {
+                if (!checkSouth(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
                     carController.turnLeft();
-                } else if (!checkNorth(currentView, currPos) && !this.reversing) {
+                } else if (!checkNorth(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
                     carController.turnRight();
                 } else {
                     carController.applyReverseAcceleration();
