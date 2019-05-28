@@ -6,4 +6,6 @@ public interface MoveStrategy {
     boolean completed();
     // To force the strategy to be completed
     void forceCompleted();
+    // To check how much health needed to do the strategy
+    int getHealthNeeded();
 }

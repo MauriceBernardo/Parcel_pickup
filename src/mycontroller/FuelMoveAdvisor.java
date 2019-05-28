@@ -1,12 +1,13 @@
 package mycontroller;
 
 import swen30006.driving.Simulation;
+import utilities.Coordinate;
 
-public class FuelAdvisor extends Advisor {
+import java.util.ArrayList;
 
-    public FuelAdvisor() {
-        setOptimization(Simulation.StrategyMode.FUEL);
+public class FuelMoveAdvisor extends MoveAdvisor {
 
+    public FuelMoveAdvisor() {
         // set the tile weight for fuel optimization
         addTileWeight("water", 1);
         addTileWeight("health", 1);
@@ -22,6 +23,21 @@ public class FuelAdvisor extends Advisor {
 
     @Override
     public void update(MyAutoController carController) {
+
+    }
+
+    @Override
+    public ArrayList<Coordinate> makeIceHealingDestination(MyAutoController carController, int amountToHeal) {
+        return null;
+    }
+
+    @Override
+    public ArrayList<Coordinate> makeWaterHealingDestination(MyAutoController carController, int amountToHeal) {
+        return null;
+    }
+
+    @Override
+    public void decideHealingStrategy() {
 
     }
 }

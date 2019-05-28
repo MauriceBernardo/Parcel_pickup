@@ -14,6 +14,10 @@ public class MultiPointStrategy implements PointToPointMove {
 
     public void addStrategy(PointToPointMove pointToPointMove) {
         pointToPointMoves.add(pointToPointMove);
+
+        if(pointToPointMoves.peekFirst().completed()){
+            setCompleted();
+        }
     }
 
     @Override

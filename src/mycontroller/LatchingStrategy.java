@@ -29,6 +29,12 @@ public class LatchingStrategy implements ExploringMove {
     }
 
     @Override
+    public int getHealthNeeded() {
+        // No need to consider health for latching strategy
+        return 0;
+    }
+
+    @Override
     public void move(MyAutoController carController) {
         WorldSpatial.Direction orientation = carController.getOrientation();
         HashMap<Coordinate, MapTile> currentView = carController.getView();
@@ -106,19 +112,20 @@ public class LatchingStrategy implements ExploringMove {
 
         switch(orientation) {
             case EAST:
-                if (!checkWallAhead(orientation, currentView, currPos)) {
-                    carController.turnRight();
-                } else {
-                    if (carController.getSpeed() == 0) {
+                if (checkWallAhead(orientation, currentView, currPos)) {
+                    if (carController.getSpeed() != 0) {
+                        carController.turnLeft();
+                    } else {
                         carController.applyReverseAcceleration();
                         carController.applyBrake();
-                    } else {
-                        carController.turnLeft();
                     }
+                }
+                else if (!checkSouth(currentView, currPos)) {
+                    carController.turnRight();
                 }
                 break;
             case NORTH:
-                if (checkWallAhead(orientation, currentView, currPos) && carController.getSpeed() > 0) {
+                if (checkWallAhead(orientation, currentView, currPos)) {
                     if (carController.getSpeed() != 0) {
                         carController.turnLeft();
                     } else {

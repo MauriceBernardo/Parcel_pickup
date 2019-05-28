@@ -124,8 +124,6 @@ public class WeightedRouteStrategy implements PointToPointMove {
             return initialOrientation;
         }
 
-        System.out.println(this.pathCoordinate);
-
         WorldSpatial.Direction orientation = WorldSpatial.Direction.EAST;
         Coordinate lastCoordinate = this.pathCoordinate.peekLast();
 
