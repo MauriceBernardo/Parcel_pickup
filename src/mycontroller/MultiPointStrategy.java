@@ -6,14 +6,24 @@ import java.util.LinkedList;
 
 public class MultiPointStrategy implements PointToPointMove {
     private LinkedList<PointToPointMove> pointToPointMoves;
+    private LinkedList<PointToPointMove> backtrackMoves;
     private boolean completed = false;
 
     public MultiPointStrategy() {
         this.pointToPointMoves = new LinkedList<>();
+        this.backtrackMoves = new LinkedList<>();
     }
 
     public void addStrategy(PointToPointMove pointToPointMove) {
         pointToPointMoves.add(pointToPointMove);
+
+        if(pointToPointMoves.peekFirst().completed()){
+            setCompleted();
+        }
+    }
+
+    public void addBacktrackStrategy(PointToPointMove pointToPointMove) {
+        backtrackMoves.push(pointToPointMove);
 
         if(pointToPointMoves.peekFirst().completed()){
             setCompleted();
@@ -41,6 +51,12 @@ public class MultiPointStrategy implements PointToPointMove {
 
             if (pointToPointMoves.peekFirst().completed()) {
                 pointToPointMoves.removeFirst();
+            }
+        } else if(!backtrackMoves.isEmpty()) {
+            backtrackMoves.peekFirst().move(carController);
+
+            if (backtrackMoves.peekFirst().completed()) {
+                backtrackMoves.removeFirst();
             }
         } else {
             setCompleted();

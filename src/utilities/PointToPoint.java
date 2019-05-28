@@ -233,13 +233,10 @@ public class PointToPoint {
         reverseCommand.add(Command.BRAKE);
     }
 
-    // Apply the command from the set of move command
-    public boolean applyCommand(MyAutoController carController) {
+    private void applyCommand(MyAutoController carController, LinkedList<Command> moveCommand) {
         Command command;
         if (!moveCommand.isEmpty()) {
             command = moveCommand.remove();
-        } else if(!reverseCommand.isEmpty()){
-            command = reverseCommand.remove();
         } else {
             command = Command.NO_COMMAND;
         }
@@ -262,9 +259,25 @@ public class PointToPoint {
             default:
                 break;
         }
+    }
+
+    // Apply the command from the set of move command
+    public boolean applyMoveCommand(MyAutoController carController) {
+        applyCommand(carController, moveCommand);
 
         // Indicate whether there's more command to be executed or not (completed or not)
-        if (moveCommand.isEmpty() && reverseCommand.isEmpty()) {
+        if (moveCommand.isEmpty()) {
+            return false;
+        }
+        return true;
+    }
+
+    // Apply the command from reverse move command
+    public boolean applyReverseCommand(MyAutoController carController){
+        applyCommand(carController, reverseCommand);
+
+        // Indicate whether there's more command to be executed or not (completed or not)
+        if (reverseCommand.isEmpty()) {
             return false;
         }
         return true;

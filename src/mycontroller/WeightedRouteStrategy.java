@@ -26,6 +26,7 @@ public class WeightedRouteStrategy implements PointToPointMove {
     private PointToPoint pointToPointAdvisor;
     private HashMap<Coordinate, MapTile> localMap;
     private WorldSpatial.Direction initialOrientation;
+    private boolean backtrack;
 
     private static class Point {
         public int weight;
@@ -49,7 +50,7 @@ public class WeightedRouteStrategy implements PointToPointMove {
     }
 
     public WeightedRouteStrategy(Coordinate source, Coordinate destination, WorldSpatial.Direction orientation,
-                                 HashMap<Coordinate, MapTile> localMap, HashMap<String, Integer> tileWeight) {
+                                 HashMap<Coordinate, MapTile> localMap, HashMap<String, Integer> tileWeight, boolean backtrack) {
         if (tileWeight != null) {
             this.tileWeight = tileWeight;
         } else {
@@ -65,10 +66,14 @@ public class WeightedRouteStrategy implements PointToPointMove {
         this.initialOrientation = orientation;
         this.destination = destination;
         this.localMap = localMap;
+        this.backtrack = backtrack;
 
         calculateLocalMapWeight(localMap, source, orientation);
         if (getShortestPathCoordinates()) {
             this.pointToPointAdvisor.translateToMoveCommand(orientation, pathCoordinate);
+            if(backtrack){
+                this.pointToPointAdvisor.considerReverseCommand();
+            }
             initialized = true;
         } else {
             setCompleted();
@@ -79,8 +84,14 @@ public class WeightedRouteStrategy implements PointToPointMove {
     @Override
     public void move(MyAutoController carController) {
         if (initialized) {
-            if (!pointToPointAdvisor.applyCommand(carController)) {
-                setCompleted();
+            if(backtrack){
+                if(!pointToPointAdvisor.applyReverseCommand(carController)){
+                    setCompleted();
+                }
+            } else {
+                if (!pointToPointAdvisor.applyMoveCommand(carController)) {
+                    setCompleted();
+                }
             }
         }
     }

@@ -28,6 +28,7 @@ public class StrategyFactory {
     public enum PointToPointMoveType {
         WEIGHTED,
         WEIGHTED_MULTI_POINT,
+        WEIGHTED_MULTI_POINT_BACKTRACK,
     }
 
     public MoveStrategy getExploringMove(ExploringMoveType type, ArrayList<String> wallTrapTypes) {
@@ -49,17 +50,18 @@ public class StrategyFactory {
                                             WorldSpatial.Direction orientation, HashMap<Coordinate, MapTile> localMap,
                                             HashMap<String, Integer> tileWeight) {
         if (pointToPointMove == null || pointToPointMove.completed()) {
+            MultiPointStrategy multiPointStrategy = new MultiPointStrategy();
+            Coordinate src = source;
+            WorldSpatial.Direction direction = orientation;
+
             switch (type) {
                 case WEIGHTED:
-                    pointToPointMove = new WeightedRouteStrategy(source, destination.get(0), orientation, localMap, tileWeight);
+                    pointToPointMove = new WeightedRouteStrategy(source, destination.get(0), orientation, localMap, tileWeight, false);
                     break;
                 case WEIGHTED_MULTI_POINT:
                     // Init the composite strategy
-                    MultiPointStrategy multiPointStrategy = new MultiPointStrategy();
-                    Coordinate src = source;
-                    WorldSpatial.Direction direction = orientation;
                     for(Coordinate coordinate : destination){
-                        WeightedRouteStrategy next = new WeightedRouteStrategy(src, coordinate, direction, localMap, tileWeight);
+                        WeightedRouteStrategy next = new WeightedRouteStrategy(src, coordinate, direction, localMap, tileWeight, false);
                         multiPointStrategy.addStrategy(next);
                         src = coordinate;
                         direction = next.getEndOrientation();
@@ -67,8 +69,21 @@ public class StrategyFactory {
 
                     pointToPointMove = multiPointStrategy;
                     break;
+                case WEIGHTED_MULTI_POINT_BACKTRACK:
+                    // Init the composite strategy
+                    for(Coordinate coordinate : destination){
+                        WeightedRouteStrategy next = new WeightedRouteStrategy(src, coordinate, direction, localMap, tileWeight, false);
+                        WeightedRouteStrategy backtrack = new WeightedRouteStrategy(src, coordinate, direction, localMap, tileWeight, true);
+                        multiPointStrategy.addStrategy(next);
+                        multiPointStrategy.addBacktrackStrategy(backtrack);
+                        src = coordinate;
+                        direction = next.getEndOrientation();
+                    }
+
+                    pointToPointMove = multiPointStrategy;
+                    break;
                 default:
-                    pointToPointMove = new WeightedRouteStrategy(source, destination.get(0), orientation, localMap, null);
+                    pointToPointMove = new WeightedRouteStrategy(source, destination.get(0), orientation, localMap, null, false);
                     break;
             }
         }

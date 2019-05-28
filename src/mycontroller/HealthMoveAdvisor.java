@@ -57,8 +57,7 @@ public class HealthMoveAdvisor extends MoveAdvisor {
             for (Coordinate coordinate : parcelCoordinates){
                 pathCoordinates.clear();
                 pathCoordinates.add(coordinate);
-                pathCoordinates.add(currentLocation);
-                setMoveStrategy(strategyFactory.getPointToPointMove(StrategyFactory.PointToPointMoveType.WEIGHTED_MULTI_POINT,
+                setMoveStrategy(strategyFactory.getPointToPointMove(StrategyFactory.PointToPointMoveType.WEIGHTED_MULTI_POINT_BACKTRACK,
                         currentLocation, pathCoordinates, orientation, carController.getLocalMap(), getTileWeight()));
             }
         }
