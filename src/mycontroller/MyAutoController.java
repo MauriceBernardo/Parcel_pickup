@@ -5,7 +5,6 @@ import swen30006.driving.Simulation;
 import tiles.TrapTile;
 import world.Car;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -16,15 +15,15 @@ public class MyAutoController extends CarController {
     // Car explored map
     private HashMap<Coordinate, MapTile> localMap = new HashMap<>();
 
-    // Advisor to move depending on the strategy
-	private Advisor moveAdvisor;
+    // MoveAdvisor to move depending on the strategy
+	private MoveAdvisor moveAdvisor;
 
     public MyAutoController(Car car) {
         super(car);
         if (Simulation.toConserve() == Simulation.StrategyMode.FUEL) {
-        	this.moveAdvisor = new FuelAdvisor();
+        	this.moveAdvisor = new FuelMoveAdvisor();
         } else if (Simulation.toConserve() == Simulation.StrategyMode.HEALTH){
-        	this.moveAdvisor = new HealthAdvisor();
+        	this.moveAdvisor = new HealthMoveAdvisor();
 		}
 
         // Initialisation of localMap

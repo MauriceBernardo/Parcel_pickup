@@ -7,13 +7,25 @@ import world.WorldSpatial;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-public class LatchingStrategy extends ExploringMove {
+public class LatchingStrategy implements ExploringMove {
     private int wallSensitivity = 1;
     private Coordinate initialCoordinate = null;
     private boolean reversing = false;
+    private boolean completed = false;
+    private ArrayList<String> wallTrapTypes;
 
     public LatchingStrategy(ArrayList<String> wallTrapTypes) {
-        super(wallTrapTypes);
+        this.wallTrapTypes = wallTrapTypes;
+    }
+
+    @Override
+    public boolean completed() {
+        return this.completed;
+    }
+
+    @Override
+    public void forceCompleted() {
+        setCompleted();
     }
 
     @Override
@@ -41,10 +53,10 @@ public class LatchingStrategy extends ExploringMove {
             }
 
             if (currentPosition.equals(this.initialCoordinate)) {
-                if (getWallTrapTypes().size() != 0) {
+                if (wallTrapTypes.size() != 0) {
                     int priorityRemoveIndex = getPriorityRemoveIndex();
 
-                    getWallTrapTypes().remove(priorityRemoveIndex);
+                    wallTrapTypes.remove(priorityRemoveIndex);
 
                 } else {
                     this.setCompleted();
@@ -58,7 +70,13 @@ public class LatchingStrategy extends ExploringMove {
         }
     }
 
+    private void setCompleted() {
+        this.completed = true;
+    }
 
+    private boolean isCompleted() {
+        return completed;
+    }
 
     private void findInitialWallToAttach(MyAutoController carController) {
         WorldSpatial.Direction orientation = carController.getOrientation();
@@ -358,7 +376,7 @@ public class LatchingStrategy extends ExploringMove {
             trapType = getTrapType(tile);
         }
 
-        for (String latchingTrapType: getWallTrapTypes()) {
+        for (String latchingTrapType: wallTrapTypes) {
             if (trapType.equals(latchingTrapType)) {
                 return true;
             }
@@ -388,14 +406,14 @@ public class LatchingStrategy extends ExploringMove {
         int currPos = -1;
         int currPriorityLevel = -1;
 
-        for (int i = 0; i<getWallTrapTypes().size(); i++) {
-            if (getWallTrapTypes().get(i).equals("health")) {
+        for (int i = 0; i<wallTrapTypes.size(); i++) {
+            if (wallTrapTypes.get(i).equals("health")) {
                 currPos = i;
                 currPriorityLevel = HEALTH_REMOVE_PRIORITY_LEVEL;
-            } else if (getWallTrapTypes().get(i).equals("water") && (currPriorityLevel < WATER_REMOVE_PRIORITY_LEVEL)) {
+            } else if (wallTrapTypes.get(i).equals("water") && (currPriorityLevel < WATER_REMOVE_PRIORITY_LEVEL)) {
                 currPos = i;
                 currPriorityLevel = WATER_REMOVE_PRIORITY_LEVEL;
-            } else if (getWallTrapTypes().get(i).equals("lava") && (currPriorityLevel < LAVA_REMOVE_PRIORITY_LEVEL)) {
+            } else if (wallTrapTypes.get(i).equals("lava") && (currPriorityLevel < LAVA_REMOVE_PRIORITY_LEVEL)) {
                 currPos = i;
                 currPriorityLevel = LAVA_REMOVE_PRIORITY_LEVEL;
             }
