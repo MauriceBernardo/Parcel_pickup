@@ -11,6 +11,8 @@ public class LatchingStrategy extends ExploringMove {
     private int wallSensitivity = 1;
     private Coordinate initialCoordinate = null;
     private boolean reversing = false;
+    private boolean foundRoadFrontRight = false;
+    private boolean foundWallBottomRight = false;
 
     public LatchingStrategy(ArrayList<String> wallTrapTypes) {
         super(wallTrapTypes);
@@ -88,52 +90,178 @@ public class LatchingStrategy extends ExploringMove {
 
         switch(orientation) {
             case EAST:
-                if (!checkWallAhead(orientation, currentView, currPos)) {
+                if (!checkEastSouth(currentView, currPos) && !reversing) {
+                    if (!checkEastSouthSouth(currentView, currPos)) {
+                        this.foundRoadFrontRight = true;
+                    } else {
+                        this.foundRoadFrontRight = false;
+                    }
+                }
+
+                if (!checkWest(currentView, currPos) && checkSouthWest(currentView, currPos)
+                        && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
+                    carController.applyReverseAcceleration();
+                    carController.applyBrake();
+                    this.foundWallBottomRight = true;
+
+                } else if (this.foundWallBottomRight) {
                     carController.turnRight();
-                } else {
-                    if (carController.getSpeed() == 0) {
+                    this.foundWallBottomRight = false;
+
+                } else if (checkWallAhead(orientation, currentView, currPos)) {
+
+                    if (this.foundRoadFrontRight) {
+                        if (!checkEastSouthSouth(currentView, currPos)) {
+                            carController.turnRight();
+                        } else {
+                            carController.turnLeft();
+                        }
+
+                        this.foundRoadFrontRight = false;
+
+                    } else if (carController.getSpeed() == 0) {
                         carController.applyReverseAcceleration();
                         carController.applyBrake();
+
                     } else {
                         carController.turnLeft();
                     }
                 }
+                else if (!checkSouth(currentView, currPos)) {
+                    if (reversing) {
+                        reversing = false;
+                    }
+                    carController.turnRight();
+                }
                 break;
+
             case NORTH:
-                if (checkWallAhead(orientation, currentView, currPos) && carController.getSpeed() > 0) {
-                    if (carController.getSpeed() != 0) {
+                if (!checkNorthEast(currentView, currPos) && !reversing) {
+                    if (!checkNorthEastEast(currentView, currPos)) {
+                        this.foundRoadFrontRight = true;
+                    } else {
+                        this.foundRoadFrontRight = false;
+                    }
+                }
+
+                if (!checkSouth(currentView, currPos) && checkEastSouth(currentView, currPos)
+                        && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
+                    carController.applyReverseAcceleration();
+                    carController.applyBrake();
+                    this.foundWallBottomRight = true;
+
+                } else if (this.foundWallBottomRight) {
+
+                    if (!checkNorthEastEast(currentView, currPos)) {
+                        carController.turnRight();
+                    } else {
                         carController.turnLeft();
+                    }
+
+                    this.foundWallBottomRight = false;
+
+                } else if (checkWallAhead(orientation, currentView, currPos)) {
+                    if (this.foundRoadFrontRight) {
+                        this.foundRoadFrontRight = false;
+                        carController.turnRight();
+
+                    } else if (carController.getSpeed() != 0) {
+                        carController.turnLeft();
+
                     } else {
                         carController.applyReverseAcceleration();
                         carController.applyBrake();
                     }
                 }
                 else if (!checkEast(currentView, currPos)) {
+                    if (reversing) {
+                        reversing = false;
+                    }
                     carController.turnRight();
                 }
                 break;
             case SOUTH:
-                if (checkWallAhead(orientation, currentView, currPos)) {
-                    System.out.println("Hello1");
-                    if (carController.getSpeed() != 0) {
+                if (!checkSouthWest(currentView, currPos) && !reversing) {
+                    if (!checkSouthWestWest(currentView, currPos)) {
+                        this.foundRoadFrontRight = true;
+                    } else {
+                        this.foundRoadFrontRight = false;
+                    }
+                }
+
+                if (!checkNorth(currentView, currPos) && checkWestNorth(currentView, currPos)
+                        && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
+                    carController.applyReverseAcceleration();
+                    carController.applyBrake();
+                    this.foundWallBottomRight = true;
+
+                } else if (this.foundWallBottomRight) {
+                    carController.turnRight();
+                    this.foundWallBottomRight = false;
+
+                } else if (checkWallAhead(orientation, currentView, currPos)) {
+                    if (foundRoadFrontRight) {
+
+                        if (!checkSouthWestWest(currentView, currPos)) {
+                            carController.turnRight();
+                        } else {
+                            carController.turnLeft();
+                        }
+                        this.foundRoadFrontRight = false;
+
+                    } else if (carController.getSpeed() != 0) {
                         carController.turnLeft();
                     } else {
                         carController.applyReverseAcceleration();
                         carController.applyBrake();
                     }
                 } else if (!checkWest(currentView, currPos)) {
+                    if (reversing) {
+                        reversing = false;
+                    }
                     carController.turnRight();
                 }
                 break;
             case WEST:
-                if (checkWallAhead(orientation, currentView, currPos)) {
-                    if (carController.getSpeed() != 0) {
+                if (!checkWestNorth(currentView, currPos) && !reversing) {
+                    if (!checkWestNorthNorth(currentView, currPos)) {
+                        this.foundRoadFrontRight = true;
+                    } else {
+                        this.foundRoadFrontRight = false;
+                    }
+                }
+
+                if (!checkEast(currentView, currPos) && checkNorthEast(currentView, currPos)
+                        && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
+                    carController.applyReverseAcceleration();
+                    carController.applyBrake();
+                    this.foundWallBottomRight = true;
+
+                } else if (this.foundWallBottomRight) {
+
+                    if (!checkWestNorthNorth(currentView, currPos)) {
+                        carController.turnRight();
+                    } else {
+                        carController.turnLeft();
+                    }
+
+                    this.foundWallBottomRight = false;
+
+                } else if (checkWallAhead(orientation, currentView, currPos)) {
+                    if (this.foundRoadFrontRight) {
+                        carController.turnRight();
+                        this.foundRoadFrontRight = false;
+
+                    } else if (carController.getSpeed() != 0) {
                         carController.turnLeft();
                     } else {
                         carController.applyReverseAcceleration();
                         carController.applyBrake();
                     }
                 } else if (!checkNorth(currentView, currPos)) {
+                    if (reversing) {
+                        reversing = false;
+                    }
                     carController.turnRight();
                 }
                 break;
@@ -312,11 +440,65 @@ public class LatchingStrategy extends ExploringMove {
         return false;
     }
 
+
+
+    private boolean checkEastSouth(HashMap<Coordinate, MapTile> currentView, String currPos) {
+        // Check tiles to my right
+        Coordinate currentPosition = new Coordinate(currPos);
+        for(int i = 0; i <= wallSensitivity; i++){
+            MapTile tile = currentView.get(new Coordinate(currentPosition.x+i, currentPosition.y-i));
+
+            if (isBlocked(tile)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean checkEastSouthSouth(HashMap<Coordinate, MapTile> currentView, String currPos) {
+        // Check tiles to my right
+        Coordinate currentPosition = new Coordinate(currPos);
+        for(int i = 0; i <= wallSensitivity; i++){
+            MapTile tile = currentView.get(new Coordinate(currentPosition.x+i, currentPosition.y-i-i));
+
+            if (isBlocked(tile)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private boolean checkWest(HashMap<Coordinate,MapTile> currentView, String currPos){
         // Check tiles to my left
         Coordinate currentPosition = new Coordinate(currPos);
         for(int i = 0; i <= wallSensitivity; i++){
             MapTile tile = currentView.get(new Coordinate(currentPosition.x-i, currentPosition.y));
+
+            if (isBlocked(tile)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean checkWestNorth(HashMap<Coordinate,MapTile> currentView, String currPos){
+        // Check tiles to my left
+        Coordinate currentPosition = new Coordinate(currPos);
+        for(int i = 0; i <= wallSensitivity; i++){
+            MapTile tile = currentView.get(new Coordinate(currentPosition.x-i, currentPosition.y+i));
+
+            if (isBlocked(tile)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean checkWestNorthNorth(HashMap<Coordinate,MapTile> currentView, String currPos){
+        // Check tiles to my left
+        Coordinate currentPosition = new Coordinate(currPos);
+        for(int i = 0; i <= wallSensitivity; i++){
+            MapTile tile = currentView.get(new Coordinate(currentPosition.x-i, currentPosition.y+i+i));
 
             if (isBlocked(tile)) {
                 return true;
@@ -337,11 +519,61 @@ public class LatchingStrategy extends ExploringMove {
         return false;
     }
 
+    private boolean checkNorthEast(HashMap<Coordinate, MapTile> currentView, String currPos) {
+        // Check tiles to towards the top
+        Coordinate currentPosition = new Coordinate(currPos);
+        for(int i = 0; i <= wallSensitivity; i++){
+            MapTile tile = currentView.get(new Coordinate(currentPosition.x+i, currentPosition.y+i));
+            if (isBlocked(tile)) {
+                return true;
+            }
+
+        }
+        return false;
+    }
+
+    private boolean checkNorthEastEast(HashMap<Coordinate, MapTile> currentView, String currPos) {
+        // Check tiles to towards the top
+        Coordinate currentPosition = new Coordinate(currPos);
+        for(int i = 0; i <= wallSensitivity; i++){
+            MapTile tile = currentView.get(new Coordinate(currentPosition.x+i+i, currentPosition.y+i));
+            if (isBlocked(tile)) {
+                return true;
+            }
+
+        }
+        return false;
+    }
+
     private boolean checkSouth(HashMap<Coordinate,MapTile> currentView, String currPos){
         // Check tiles towards the bottom
         Coordinate currentPosition = new Coordinate(currPos);
         for(int i = 0; i <= wallSensitivity; i++){
             MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y-i));
+            if (isBlocked(tile)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean checkSouthWest(HashMap<Coordinate,MapTile> currentView, String currPos){
+        // Check tiles towards the bottom
+        Coordinate currentPosition = new Coordinate(currPos);
+        for(int i = 0; i <= wallSensitivity; i++){
+            MapTile tile = currentView.get(new Coordinate(currentPosition.x-i, currentPosition.y-i));
+            if (isBlocked(tile)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean checkSouthWestWest(HashMap<Coordinate,MapTile> currentView, String currPos){
+        // Check tiles towards the bottom
+        Coordinate currentPosition = new Coordinate(currPos);
+        for(int i = 0; i <= wallSensitivity; i++){
+            MapTile tile = currentView.get(new Coordinate(currentPosition.x-i-i, currentPosition.y-i));
             if (isBlocked(tile)) {
                 return true;
             }
