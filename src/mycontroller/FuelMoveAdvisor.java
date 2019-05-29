@@ -48,7 +48,7 @@ public class FuelMoveAdvisor extends MoveAdvisor {
             // Set pointToPointMove to a completed move
             LinkedList<Coordinate> dummy = new LinkedList<>();
             dummy.add(currentLocation);
-            pointToPointMove = strategyFactory.getPointToPointMove(StrategyFactory.PointToPointMoveType.DEFAULT,
+            pointToPointMove = strategyFactory.getPointToPointMove(StrategyFactory.PointToPointMoveType.WEIGHTED,
                     currentLocation, dummy, orientation, carController.getLocalMap(), getTileWeight());
             pointToPointMove.forceCompleted();
         }
