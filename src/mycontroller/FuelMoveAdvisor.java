@@ -117,54 +117,8 @@ public class FuelMoveAdvisor extends MoveAdvisor {
     }
 
     @Override
-    public LinkedList<Coordinate> makeIceHealingDestination(MyAutoController carController, int amountToHeal) {
-        // variable needed to make a new strategy
-        StrategyFactory strategyFactory = StrategyFactory.getInstance();
-        Coordinate currentLocation = new Coordinate(carController.getPosition());
-        WorldSpatial.Direction orientation = carController.getOrientation();
-        LinkedList<Coordinate> iceLocation = carController.getIceCoordinates();
-
-        int minimumHealthNeeded = 100000;
-        LinkedList<Coordinate> tempCoordinates = new LinkedList<>();
-        LinkedList<Coordinate> bestCoordinates = new LinkedList<>();
-
-        for (Coordinate coordinate : iceLocation) {
-            tempCoordinates.clear();
-            tempCoordinates.add(coordinate);
-
-            MoveStrategy moveStrategy = strategyFactory.getPointToPointMove(StrategyFactory.PointToPointMoveType.WEIGHTED_MULTI_POINT_BACKTRACK,
-                    currentLocation, tempCoordinates, orientation, carController.getLocalMap(), getTileWeight());
-
-            // No need to be considered if can't even go to the location
-            if (!moveStrategy.completed()) {
-                if (moveStrategy.getHealthNeeded() < minimumHealthNeeded) {
-                    bestCoordinates.clear();
-                    minimumHealthNeeded = moveStrategy.getHealthNeeded();
-                    bestCoordinates.add(coordinate);
-                }
-            }
-        }
-
-        // add point to the ice point (brake) to specify how much to heal
-        if (!bestCoordinates.isEmpty()) {
-            Coordinate bestIceCoordinates = bestCoordinates.getFirst();
-            for (int i = 0; i < Math.ceil(amountToHeal/2) + minimumHealthNeeded - 3; i++) {
-                bestCoordinates.push(new Coordinate(bestIceCoordinates.toString()));
-            }
-        }
-
-        return bestCoordinates;
-    }
-
-    @Override
-    public LinkedList<Coordinate> makeWaterHealingDestination(MyAutoController carController, int amountToHeal) {
-        // no need to consider water healing for fuel optimization
-        return new LinkedList<>();
-    }
-
-    @Override
     public void decideHealingStrategy(MyAutoController carController, int amountToHeal) {
-        // Variable needed to be able to make a move strategy
+        // Variable needed to be able to make a move strategy only need to consider ice
         StrategyFactory strategyFactory = StrategyFactory.getInstance();
         LinkedList<Coordinate> iceCoordinate = makeIceHealingDestination(carController, amountToHeal);
         Coordinate currentLocation = new Coordinate(carController.getPosition());
