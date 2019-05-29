@@ -1,36 +1,79 @@
 package mycontroller;
 
+import tiles.LavaTrap;
 import tiles.MapTile;
 import tiles.TrapTile;
 import utilities.Coordinate;
+import utilities.PointToPoint;
 import world.WorldSpatial;
 
 import java.util.*;
 
-public class WeightedRouteStrategy extends PointToPointMove {
+public class WeightedRouteStrategy implements PointToPointMove {
     private static final int UNREACHABLE = 1000;
 
+    // Variable to see whether it's completed or not
+    private boolean completed = false;
+
+    // Guard for calling move although it can't move
     private boolean initialized = false;
 
+    // Variable needed to run the algorithm
+    private Coordinate destination;
     private HashMap<Coordinate, Point> weightMap = new HashMap<>();
     private HashMap<String, Integer> tileWeight;
+    private LinkedList<Coordinate> pathCoordinate = new LinkedList<>();
+    private PointToPoint pointToPointAdvisor;
+    private HashMap<Coordinate, MapTile> localMap;
+    private WorldSpatial.Direction initialOrientation;
+    private boolean backtrack;
 
-    public WeightedRouteStrategy(Coordinate destination, boolean backtrack, MyAutoController carController, HashMap<String, Integer> tileWeight) {
-        super(destination, backtrack, carController);
-        if(tileWeight != null){
+    private static class Point {
+        public int weight;
+        public Source source;
+        public Coordinate coordinate;
+
+        public enum Source {
+            DOWN,
+            LEFT,
+            ORIGIN,
+            RIGHT,
+            UP,
+            IMPASSABLE
+        }
+
+        public Point(int weight, Source source, Coordinate coordinate) {
+            this.weight = weight;
+            this.source = source;
+            this.coordinate = coordinate;
+        }
+    }
+
+    public WeightedRouteStrategy(Coordinate source, Coordinate destination, WorldSpatial.Direction orientation,
+                                 HashMap<Coordinate, MapTile> localMap, HashMap<String, Integer> tileWeight, boolean backtrack) {
+        if (tileWeight != null) {
             this.tileWeight = tileWeight;
         } else {
             // Put default weight for the algorithm
             this.tileWeight = new HashMap<>();
             this.tileWeight.put("lava", 5);
-            this.tileWeight.put("health", 1);
-            this.tileWeight.put("water", 1);
-            this.tileWeight.put("road", 2);
+            this.tileWeight.put("health", 0);
+            this.tileWeight.put("water", 0);
+            this.tileWeight.put("road", 0);
         }
 
-        calculateLocalMapWeight(getLocalMap(), getSource(), getInitialOrientation());
+        this.pointToPointAdvisor = new PointToPoint();
+        this.initialOrientation = orientation;
+        this.destination = destination;
+        this.localMap = localMap;
+        this.backtrack = backtrack;
+
+        calculateLocalMapWeight(localMap, source, orientation);
         if (getShortestPathCoordinates()) {
-            translateToMoveCommand(carController.getOrientation());
+            this.pointToPointAdvisor.translateToMoveCommand(orientation, pathCoordinate);
+            if(backtrack){
+                this.pointToPointAdvisor.considerReverseCommand();
+            }
             initialized = true;
         } else {
             setCompleted();
@@ -41,15 +84,96 @@ public class WeightedRouteStrategy extends PointToPointMove {
     @Override
     public void move(MyAutoController carController) {
         if (initialized) {
-            applyCommand(carController);
+            if(backtrack){
+                if(!pointToPointAdvisor.applyReverseCommand(carController)){
+                    setCompleted();
+                }
+            } else {
+                if (!pointToPointAdvisor.applyMoveCommand(carController)) {
+                    setCompleted();
+                }
+            }
         }
+    }
+
+    @Override
+    public boolean completed() {
+        return completed;
+    }
+
+    @Override
+    public void forceCompleted() {
+        setCompleted();
+    }
+
+    @Override
+    public int getHealthNeeded() {
+        // No health needed if can't even go to the point
+        if(!initialized){
+            return 0;
+        }
+
+        int healthNeeded = 0;
+
+        MapTile endTile = localMap.get(pathCoordinate.peekLast());
+        if (endTile instanceof LavaTrap) {
+            healthNeeded += 5;
+        }
+
+        for (Coordinate coordinate : pathCoordinate) {
+            MapTile passedTile = localMap.get(coordinate);
+            if (passedTile instanceof LavaTrap) {
+                healthNeeded += 5;
+            }
+        }
+        return healthNeeded;
+    }
+
+    @Override
+    public WorldSpatial.Direction getEndOrientation() {
+        if (!initialized || pathCoordinate.size() == 1) {
+            return initialOrientation;
+        }
+
+        WorldSpatial.Direction orientation = WorldSpatial.Direction.EAST;
+        Coordinate lastCoordinate = this.pathCoordinate.peekLast();
+
+        // Check whether it's reversing to go to the point or forward
+        boolean forward = true;
+        PointToPoint.Command command = pointToPointAdvisor.peekFirstMoveCommand();
+        if (command == PointToPoint.Command.REVERSE) {
+            forward = false;
+        }
+
+        Point lastPoint = weightMap.get(lastCoordinate);
+
+
+        switch (lastPoint.source) {
+            case LEFT:
+                orientation = WorldSpatial.Direction.EAST;
+                break;
+            case RIGHT:
+                orientation = WorldSpatial.Direction.WEST;
+                break;
+            case DOWN:
+                orientation = WorldSpatial.Direction.NORTH;
+                break;
+            case UP:
+                orientation = WorldSpatial.Direction.SOUTH;
+                break;
+        }
+
+        if (!forward) {
+            return WorldSpatial.reverseDirection(orientation);
+        }
+        return orientation;
     }
 
     // Get the shortest path coordinates base on the Dijkstra
     private boolean getShortestPathCoordinates() {
-        Point nextPoint = weightMap.get(this.getDestination());
+        Point nextPoint = weightMap.get(destination);
         while (nextPoint.source != Point.Source.ORIGIN) {
-            this.getPathCoordinate().push(nextPoint.coordinate);
+            pathCoordinate.push(nextPoint.coordinate);
             switch (nextPoint.source) {
                 case UP:
                     nextPoint = weightMap.get(new Coordinate(nextPoint.coordinate.getUpCoordinate()));
@@ -68,7 +192,7 @@ public class WeightedRouteStrategy extends PointToPointMove {
             }
         }
 
-        this.getPathCoordinate().push(nextPoint.coordinate);
+        pathCoordinate.push(nextPoint.coordinate);
         return true;
     }
 
@@ -170,6 +294,7 @@ public class WeightedRouteStrategy extends PointToPointMove {
         }
     }
 
+    // Calculate the distance depending on the tile weight
     private int calculateDist(MapTile destination) {
         if (destination == null) {
             return UNREACHABLE;
@@ -186,4 +311,8 @@ public class WeightedRouteStrategy extends PointToPointMove {
         }
     }
 
+
+    private void setCompleted() {
+        this.completed = true;
+    }
 }
