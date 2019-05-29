@@ -20,7 +20,7 @@ public class FuelMoveAdvisor extends MoveAdvisor {
         // set the tile weight for health optimization
         addTileWeight("water", 0);
         addTileWeight("health", 0);
-        addTileWeight("lava", 5);
+        addTileWeight("lava", 0);
         addTileWeight("parcel", 0);
         addTileWeight("road", 0);
 
