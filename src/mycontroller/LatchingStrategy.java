@@ -44,7 +44,9 @@ public class LatchingStrategy implements ExploringMove {
         Coordinate currentPosition = new Coordinate(currPos);
 
         if (!isCompleted()) {
-            carController.applyForwardAcceleration();
+            if (!reversing) {
+                carController.applyForwardAcceleration();
+            }
 
             if (!checkFollowingWall(orientation, currentView, currPos)) {
                 if (this.initialCoordinate == null) {
@@ -115,14 +117,17 @@ public class LatchingStrategy implements ExploringMove {
         switch(orientation) {
             case EAST:
                 if (!checkEastSouth(currentView, currPos) && !reversing) {
-                    if (!checkEastSouthSouth(currentView, currPos)) {
-                        this.foundRoadFrontRight = true;
-                    } else {
-                        this.foundRoadFrontRight = false;
-                    }
+                    this.foundRoadFrontRight = true;
                 }
 
-                if (!checkWest(currentView, currPos) && checkSouthWest(currentView, currPos)
+                if (reversing) {
+                     if (!checkNorth(currentView, currPos)) {
+                         carController.turnRight();
+                         carController.applyBrake();
+                         reversing = false;
+                     }
+
+                } else if (!checkWest(currentView, currPos) && checkSouthWest(currentView, currPos)
                         && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
@@ -135,11 +140,7 @@ public class LatchingStrategy implements ExploringMove {
                 } else if (checkWallAhead(orientation, currentView, currPos)) {
 
                     if (this.foundRoadFrontRight) {
-                        if (!checkEastSouthSouth(currentView, currPos)) {
-                            carController.turnRight();
-                        } else {
-                            carController.turnLeft();
-                        }
+                        carController.turnRight();
 
                         this.foundRoadFrontRight = false;
 
@@ -161,14 +162,17 @@ public class LatchingStrategy implements ExploringMove {
 
             case NORTH:
                 if (!checkNorthEast(currentView, currPos) && !reversing) {
-                    if (!checkNorthEastEast(currentView, currPos)) {
-                        this.foundRoadFrontRight = true;
-                    } else {
-                        this.foundRoadFrontRight = false;
-                    }
+                    this.foundRoadFrontRight = true;
                 }
 
-                if (!checkSouth(currentView, currPos) && checkEastSouth(currentView, currPos)
+                if (reversing) {
+                    if (!checkWest(currentView, currPos)) {
+                        carController.turnRight();
+                        carController.applyBrake();
+                        reversing = false;
+                    }
+
+                } else if (!checkSouth(currentView, currPos) && checkEastSouth(currentView, currPos)
                         && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
@@ -176,11 +180,7 @@ public class LatchingStrategy implements ExploringMove {
 
                 } else if (this.foundWallBottomRight) {
 
-                    if (!checkNorthEastEast(currentView, currPos)) {
-                        carController.turnRight();
-                    } else {
-                        carController.turnLeft();
-                    }
+                    carController.turnRight();
 
                     this.foundWallBottomRight = false;
 
@@ -206,14 +206,17 @@ public class LatchingStrategy implements ExploringMove {
                 break;
             case SOUTH:
                 if (!checkSouthWest(currentView, currPos) && !reversing) {
-                    if (!checkSouthWestWest(currentView, currPos)) {
-                        this.foundRoadFrontRight = true;
-                    } else {
-                        this.foundRoadFrontRight = false;
-                    }
+                    this.foundRoadFrontRight = true;
                 }
 
-                if (!checkNorth(currentView, currPos) && checkWestNorth(currentView, currPos)
+                if (reversing) {
+                    if (!checkEast(currentView, currPos)) {
+                        carController.turnRight();
+                        carController.applyBrake();
+                        reversing = false;
+                    }
+
+                } else if (!checkNorth(currentView, currPos) && checkWestNorth(currentView, currPos)
                         && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
@@ -226,11 +229,8 @@ public class LatchingStrategy implements ExploringMove {
                 } else if (checkWallAhead(orientation, currentView, currPos)) {
                     if (foundRoadFrontRight) {
 
-                        if (!checkSouthWestWest(currentView, currPos)) {
-                            carController.turnRight();
-                        } else {
-                            carController.turnLeft();
-                        }
+                        carController.turnRight();
+
                         this.foundRoadFrontRight = false;
 
                     } else if (carController.getSpeed() != 0) {
@@ -248,26 +248,24 @@ public class LatchingStrategy implements ExploringMove {
                 break;
             case WEST:
                 if (!checkWestNorth(currentView, currPos) && !reversing) {
-                    if (!checkWestNorthNorth(currentView, currPos)) {
-                        this.foundRoadFrontRight = true;
-                    } else {
-                        this.foundRoadFrontRight = false;
-                    }
+                    this.foundRoadFrontRight = true;
                 }
 
-                if (!checkEast(currentView, currPos) && checkNorthEast(currentView, currPos)
+                if (reversing) {
+                    if (!checkSouth(currentView, currPos)) {
+                        carController.turnRight();
+                        carController.applyBrake();
+                        reversing = false;
+                    }
+
+                } else if (!checkEast(currentView, currPos) && checkNorthEast(currentView, currPos)
                         && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
                     this.foundWallBottomRight = true;
 
                 } else if (this.foundWallBottomRight) {
-
-                    if (!checkWestNorthNorth(currentView, currPos)) {
-                        carController.turnRight();
-                    } else {
-                        carController.turnLeft();
-                    }
+                    carController.turnRight();
 
                     this.foundWallBottomRight = false;
 
@@ -311,12 +309,7 @@ public class LatchingStrategy implements ExploringMove {
                     carController.applyReverseAcceleration();
                     this.reversing = true;
 
-                    if (!checkSouth(currentView, currPos)) {
-                        carController.turnLeft();
-                        carController.applyBrake();
-                        this.reversing = false;
-
-                    } else if (!checkNorth(currentView, currPos)) {
+                    if (!checkNorth(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
                         this.reversing = false;
@@ -340,10 +333,6 @@ public class LatchingStrategy implements ExploringMove {
                         carController.applyBrake();
                         this.reversing = false;
 
-                    } else if (!checkEast(currentView, currPos)) {
-                        carController.turnLeft();
-                        carController.applyBrake();
-                        this.reversing = false;
                     }
                 }
                 break;
@@ -357,12 +346,7 @@ public class LatchingStrategy implements ExploringMove {
                     carController.applyReverseAcceleration();
                     this.reversing = true;
 
-                    if (!checkWest(currentView, currPos)) {
-                        carController.turnLeft();
-                        carController.applyBrake();
-                        this.reversing = false;
-
-                    } else if (!checkEast(currentView, currPos)) {
+                    if (!checkEast(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
                         this.reversing = false;
@@ -384,11 +368,8 @@ public class LatchingStrategy implements ExploringMove {
                         carController.applyBrake();
                         this.reversing = false;
 
-                    } else if (!checkNorth(currentView, currPos)) {
-                        carController.turnLeft();
-                        carController.applyBrake();
-                        this.reversing = false;
                     }
+
                 }
                 break;
 
@@ -479,19 +460,6 @@ public class LatchingStrategy implements ExploringMove {
         return false;
     }
 
-    private boolean checkEastSouthSouth(HashMap<Coordinate, MapTile> currentView, String currPos) {
-        // Check tiles to my right
-        Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x+i, currentPosition.y-i-i));
-
-            if (isBlocked(tile)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     private boolean checkWest(HashMap<Coordinate,MapTile> currentView, String currPos){
         // Check tiles to my left
         Coordinate currentPosition = new Coordinate(currPos);
@@ -510,19 +478,6 @@ public class LatchingStrategy implements ExploringMove {
         Coordinate currentPosition = new Coordinate(currPos);
         for(int i = 0; i <= wallSensitivity; i++){
             MapTile tile = currentView.get(new Coordinate(currentPosition.x-i, currentPosition.y+i));
-
-            if (isBlocked(tile)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean checkWestNorthNorth(HashMap<Coordinate,MapTile> currentView, String currPos){
-        // Check tiles to my left
-        Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x-i, currentPosition.y+i+i));
 
             if (isBlocked(tile)) {
                 return true;
@@ -556,19 +511,6 @@ public class LatchingStrategy implements ExploringMove {
         return false;
     }
 
-    private boolean checkNorthEastEast(HashMap<Coordinate, MapTile> currentView, String currPos) {
-        // Check tiles to towards the top
-        Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x+i+i, currentPosition.y+i));
-            if (isBlocked(tile)) {
-                return true;
-            }
-
-        }
-        return false;
-    }
-
     private boolean checkSouth(HashMap<Coordinate,MapTile> currentView, String currPos){
         // Check tiles towards the bottom
         Coordinate currentPosition = new Coordinate(currPos);
@@ -586,18 +528,6 @@ public class LatchingStrategy implements ExploringMove {
         Coordinate currentPosition = new Coordinate(currPos);
         for(int i = 0; i <= wallSensitivity; i++){
             MapTile tile = currentView.get(new Coordinate(currentPosition.x-i, currentPosition.y-i));
-            if (isBlocked(tile)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean checkSouthWestWest(HashMap<Coordinate,MapTile> currentView, String currPos){
-        // Check tiles towards the bottom
-        Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x-i-i, currentPosition.y-i));
             if (isBlocked(tile)) {
                 return true;
             }
@@ -637,23 +567,23 @@ public class LatchingStrategy implements ExploringMove {
     }
 
     private int getPriorityRemoveIndex() {
-        final int HEALTH_REMOVE_PRIORITY_LEVEL = 3;
-        final int WATER_REMOVE_PRIORITY_LEVEL = 2;
-        final int LAVA_REMOVE_PRIORITY_LEVEL = 1;
+        final int WATER_REMOVE_PRIORITY_LEVEL = 1;
+        final int HEALTH_REMOVE_PRIORITY_LEVEL = 2;
+        final int LAVA_REMOVE_PRIORITY_LEVEL = 3;
 
         int currPos = -1;
         int currPriorityLevel = -1;
 
         for (int i = 0; i<wallTrapTypes.size(); i++) {
-            if (wallTrapTypes.get(i).equals("health")) {
-                currPos = i;
-                currPriorityLevel = HEALTH_REMOVE_PRIORITY_LEVEL;
-            } else if (wallTrapTypes.get(i).equals("water") && (currPriorityLevel < WATER_REMOVE_PRIORITY_LEVEL)) {
-                currPos = i;
-                currPriorityLevel = WATER_REMOVE_PRIORITY_LEVEL;
-            } else if (wallTrapTypes.get(i).equals("lava") && (currPriorityLevel < LAVA_REMOVE_PRIORITY_LEVEL)) {
+            if (wallTrapTypes.get(i).equals("lava")) {
                 currPos = i;
                 currPriorityLevel = LAVA_REMOVE_PRIORITY_LEVEL;
+            } else if (wallTrapTypes.get(i).equals("health") && (currPriorityLevel < WATER_REMOVE_PRIORITY_LEVEL)) {
+                currPos = i;
+                currPriorityLevel = HEALTH_REMOVE_PRIORITY_LEVEL;
+            } else if (wallTrapTypes.get(i).equals("water") && (currPriorityLevel < LAVA_REMOVE_PRIORITY_LEVEL)) {
+                currPos = i;
+                currPriorityLevel = WATER_REMOVE_PRIORITY_LEVEL;
             }
         }
 
