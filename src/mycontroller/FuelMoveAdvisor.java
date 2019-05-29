@@ -13,6 +13,10 @@ public class FuelMoveAdvisor extends MoveAdvisor {
     private MoveStrategy pointToPointMove = null;
 
     public FuelMoveAdvisor() {
+        // This optimisation will work if the parcel can be seen from wall latching movement since
+        // out exploring movement that we implement is only wall latching
+        // It will work in all map with certain parameter except hard map with 4 parcel needed (which will cause loops)
+
         // set the tile weight for health optimization
         addTileWeight("water", 0);
         addTileWeight("health", 0);

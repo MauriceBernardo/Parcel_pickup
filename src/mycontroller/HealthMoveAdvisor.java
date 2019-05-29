@@ -4,7 +4,6 @@ import utilities.Coordinate;
 import world.WorldSpatial;
 import java.util.LinkedList;
 
-
 public class HealthMoveAdvisor extends MoveAdvisor {
     private Integer initialHealth = null;
     private boolean retrievingParcel = false;
@@ -16,6 +15,10 @@ public class HealthMoveAdvisor extends MoveAdvisor {
     private int healthChecked;
 
     public HealthMoveAdvisor() {
+        // Healing move can be seen when the health is 250 for the hard map
+        // more than that it will die since the algorithm doesn't really support advanced logic
+        // With some healing this algorithm can survive in health 460, fuel 350 condition to collect 4 parcel
+
         // set the tile weight for health optimization
         addTileWeight("water", 996);
         addTileWeight("health", 10);
