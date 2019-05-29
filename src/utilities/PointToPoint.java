@@ -218,6 +218,10 @@ public class PointToPoint {
             }
         }
 
+        if(reverseCommand.size() == 1){
+            return;
+        }
+
         // Remove the last and first brake
         reverseCommand.removeLast();
         reverseCommand.removeFirst();

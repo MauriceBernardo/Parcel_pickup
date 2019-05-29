@@ -36,6 +36,11 @@ public class MultiPointStrategy implements PointToPointMove {
         for (PointToPointMove strategy : pointToPointMoves){
             healthNeeded += strategy.getHealthNeeded();
         }
+
+        for (PointToPointMove strategy : backtrackMoves){
+            healthNeeded += strategy.getHealthNeeded();
+        }
+
         return healthNeeded;
     }
 

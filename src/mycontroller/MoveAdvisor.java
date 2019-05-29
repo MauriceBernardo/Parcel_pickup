@@ -4,6 +4,7 @@ import utilities.Coordinate;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 public abstract class MoveAdvisor {
     private MoveStrategy moveStrategy;
@@ -46,7 +47,14 @@ public abstract class MoveAdvisor {
         tileWeight.put(key, weight);
     }
 
-    public abstract ArrayList<Coordinate> makeIceHealingDestination(MyAutoController carController, int amountToHeal);
-    public abstract ArrayList<Coordinate> makeWaterHealingDestination(MyAutoController carController, int amountToHeal);
-    public abstract void decideHealingStrategy();
+    // Remove tile weight to be considered
+    public void updateTileWeight(String key, Integer weight) {
+        tileWeight.replace(key, weight);
+    }
+
+    public abstract LinkedList<Coordinate> makeIceHealingDestination(MyAutoController carController, int amountToHeal);
+
+    public abstract LinkedList<Coordinate> makeWaterHealingDestination(MyAutoController carController, int amountToHeal);
+
+    public abstract void decideHealingStrategy(MyAutoController carController, int amountToHeal);
 }

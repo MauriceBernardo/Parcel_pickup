@@ -2,13 +2,12 @@ package mycontroller;
 
 import controller.CarController;
 import swen30006.driving.Simulation;
-import tiles.TrapTile;
+import tiles.*;
 import world.Car;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 
-import tiles.MapTile;
 import utilities.Coordinate;
 
 public class MyAutoController extends CarController {
@@ -16,15 +15,15 @@ public class MyAutoController extends CarController {
     private HashMap<Coordinate, MapTile> localMap = new HashMap<>();
 
     // MoveAdvisor to move depending on the strategy
-	private MoveAdvisor moveAdvisor;
+    private MoveAdvisor moveAdvisor;
 
     public MyAutoController(Car car) {
         super(car);
         if (Simulation.toConserve() == Simulation.StrategyMode.FUEL) {
-        	this.moveAdvisor = new FuelMoveAdvisor();
-        } else if (Simulation.toConserve() == Simulation.StrategyMode.HEALTH){
-        	this.moveAdvisor = new HealthMoveAdvisor();
-		}
+            this.moveAdvisor = new FuelMoveAdvisor();
+        } else if (Simulation.toConserve() == Simulation.StrategyMode.HEALTH) {
+            this.moveAdvisor = new HealthMoveAdvisor();
+        }
 
         // Initialisation of localMap
         int maxWidth = mapWidth();
@@ -46,30 +45,8 @@ public class MyAutoController extends CarController {
         // Update the local map based on what the car can see
         updateLocalMap(currentView);
 
-        // For logging purposes
-        Coordinate carPosition = new Coordinate(getPosition());
-        System.out.println(carPosition);
-        for (int y = carPosition.y + 4; y >= carPosition.y - 4; y--) {
-            for (int x = carPosition.x - 4; x <= carPosition.x + 4; x++) {
-                if (x == carPosition.x && y == carPosition.y) {
-                    System.out.printf("%6s", "here");
-                    System.out.print("|");
-                    continue;
-                }
-
-                if (currentView.get(new Coordinate(x, y)).getType() == MapTile.Type.TRAP) {
-                    TrapTile test = (TrapTile) currentView.get(new Coordinate(x, y));
-                    System.out.printf("%6s", test.getTrap());
-                } else {
-                    System.out.printf("%6s", currentView.get(new Coordinate(x, y)).getType());
-                }
-                System.out.print("|");
-            }
-            System.out.println();
-        }
-
         // Move depending on the optimization
-		moveAdvisor.update(this);
+        moveAdvisor.update(this);
     }
 
 
@@ -83,29 +60,48 @@ public class MyAutoController extends CarController {
         }
     }
 
-    public LinkedList<Coordinate> getParcelCoordinates(){
+    public LinkedList<Coordinate> getParcelCoordinates() {
         LinkedList<Coordinate> parcelCoordinates = new LinkedList<>();
-        for (Coordinate coordinate : localMap.keySet()){
-            if(localMap.get(coordinate).getType() == MapTile.Type.TRAP){
-                TrapTile trapTile = (TrapTile) localMap.get(coordinate);
-                if(trapTile.getTrap().equals("parcel")){
-                    parcelCoordinates.add(coordinate);
-                }
+        for (Coordinate coordinate : localMap.keySet()) {
+            if (localMap.get(coordinate) instanceof ParcelTrap) {
+                parcelCoordinates.add(coordinate);
             }
         }
 
         return parcelCoordinates;
     }
 
-    public LinkedList<Coordinate> getFinishCoordinates(){
+    public LinkedList<Coordinate> getFinishCoordinates() {
         LinkedList<Coordinate> finishCoordinates = new LinkedList<>();
-        for (Coordinate coordinate : localMap.keySet()){
-            if(localMap.get(coordinate).getType() == MapTile.Type.FINISH){
+        for (Coordinate coordinate : localMap.keySet()) {
+            if (localMap.get(coordinate).getType() == MapTile.Type.FINISH) {
                 finishCoordinates.add(coordinate);
             }
         }
 
         return finishCoordinates;
+    }
+
+    public LinkedList<Coordinate> getIceCoordinates() {
+        LinkedList<Coordinate> iceCoordinates = new LinkedList<>();
+        for (Coordinate coordinate : localMap.keySet()) {
+            if (localMap.get(coordinate) instanceof HealthTrap) {
+                iceCoordinates.add(coordinate);
+            }
+        }
+
+        return iceCoordinates;
+    }
+
+    public LinkedList<Coordinate> getWaterCoordinates() {
+        LinkedList<Coordinate> waterCoordinates = new LinkedList<>();
+        for (Coordinate coordinate : localMap.keySet()) {
+            if (localMap.get(coordinate) instanceof WaterTrap) {
+                waterCoordinates.add(coordinate);
+            }
+        }
+
+        return waterCoordinates;
     }
 
     public HashMap<Coordinate, MapTile> getLocalMap() {

@@ -108,14 +108,14 @@ public class WeightedRouteStrategy implements PointToPointMove {
 
     @Override
     public int getHealthNeeded() {
-        // Minimal health needed to make sure the car won't die
-        int healthNeeded = 5;
-
-        MapTile startTile = localMap.get(pathCoordinate.peekFirst());
-        MapTile endTile = localMap.get(pathCoordinate.peekLast());
-        if (startTile instanceof LavaTrap) {
-            healthNeeded += 5;
+        // No health needed if can't even go to the point
+        if(!initialized){
+            return 0;
         }
+
+        int healthNeeded = 0;
+
+        MapTile endTile = localMap.get(pathCoordinate.peekLast());
         if (endTile instanceof LavaTrap) {
             healthNeeded += 5;
         }
