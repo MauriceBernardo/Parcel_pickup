@@ -7,15 +7,23 @@ import world.WorldSpatial;
 import java.util.ArrayList;
 import java.util.HashMap;
 
+/**
+ * The type Latching strategy.
+ */
 public class LatchingStrategy implements ExploringMove {
-    private int wallSensitivity = 1;
+    private int oneStep = 1;
     private Coordinate initialCoordinate = null;
-    private boolean reversing = false;
+    private boolean findWayOutReversing = false;
     private boolean completed = false;
     private ArrayList<String> wallTrapTypes;
     private boolean foundRoadFrontRight = false;
     private boolean foundWallBottomRight = false;
 
+    /**
+     * Instantiates a new Latching strategy.
+     *
+     * @param wallTrapTypes the wall trap types
+     */
     public LatchingStrategy(ArrayList<String> wallTrapTypes) {
         this.wallTrapTypes = wallTrapTypes;
     }
@@ -44,10 +52,12 @@ public class LatchingStrategy implements ExploringMove {
         Coordinate currentPosition = new Coordinate(currPos);
 
         if (!isCompleted()) {
-            if (!reversing) {
+            // move forward if the car is reversing while searching for path out
+            if (!findWayOutReversing) {
                 carController.applyForwardAcceleration();
             }
 
+            // search for wall to attach
             if (!checkFollowingWall(orientation, currentView, currPos)) {
                 if (this.initialCoordinate == null) {
                     findInitialWallToAttach(carController);
@@ -56,12 +66,13 @@ public class LatchingStrategy implements ExploringMove {
                 }
 
             }
-            else {
-                if (checkWallAhead(orientation, currentView, currPos) || this.reversing) {
-                    findWayOut(carController);
-                }
+            // find path out of the corner
+            else if (checkWallAhead(orientation, currentView, currPos) || this.findWayOutReversing) {
+                findWayOut(carController);
+
             }
 
+            // remove the type of wall (health / water / lava) depends on their priority level when a round is done
             if (currentPosition.equals(this.initialCoordinate)) {
                 if (wallTrapTypes.size() != 0) {
                     int priorityRemoveIndex = getPriorityRemoveIndex();
@@ -88,6 +99,11 @@ public class LatchingStrategy implements ExploringMove {
         return completed;
     }
 
+    /**
+     * Find initial wall to attach.
+     *
+     * @param carController the car controller
+     */
     private void findInitialWallToAttach(MyAutoController carController) {
         WorldSpatial.Direction orientation = carController.getOrientation();
         HashMap<Coordinate, MapTile> currentView = carController.getView();
@@ -109,6 +125,11 @@ public class LatchingStrategy implements ExploringMove {
         }
     }
 
+    /**
+     * Find wall to attach.
+     *
+     * @param carController the car controller
+     */
     private void findWallToAttach(MyAutoController carController) {
         WorldSpatial.Direction orientation = carController.getOrientation();
         HashMap<Coordinate, MapTile> currentView = carController.getView();
@@ -116,18 +137,22 @@ public class LatchingStrategy implements ExploringMove {
 
         switch(orientation) {
             case EAST:
-                if (!checkEastSouth(currentView, currPos) && !reversing) {
+                if (!checkEastSouth(currentView, currPos) && !findWayOutReversing) {
                     this.foundRoadFrontRight = true;
                 }
 
-                if (reversing) {
-                     if (!checkNorth(currentView, currPos)) {
-                         carController.turnRight();
-                         carController.applyBrake();
-                         reversing = false;
-                     }
+                // check if there is a path on the left hand side of the car when it is finding way out
+                if (findWayOutReversing) {
+                    if (!checkNorth(currentView, currPos)) {
+                        carController.turnRight();
+                        carController.applyBrake();
+                        findWayOutReversing = false;
+                    }
 
-                } else if (!checkWest(currentView, currPos) && checkSouthWest(currentView, currPos)
+                }
+                // one step away from wall (initially attaching wall)
+                // reverse, brake, forward and turn right so that the car will attach to another wall closer to it
+                else if (!checkWest(currentView, currPos) && checkSouthWest(currentView, currPos)
                         && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
@@ -137,8 +162,8 @@ public class LatchingStrategy implements ExploringMove {
                     carController.turnRight();
                     this.foundWallBottomRight = false;
 
-                } else if (checkWallAhead(orientation, currentView, currPos)) {
-
+                }
+                else if (checkWallAhead(orientation, currentView, currPos)) {
                     if (this.foundRoadFrontRight) {
                         carController.turnRight();
 
@@ -152,27 +177,33 @@ public class LatchingStrategy implements ExploringMove {
                         carController.turnLeft();
                     }
                 }
+                // turn right if nothing blocking on the right side of the car
                 else if (!checkSouth(currentView, currPos)) {
-                    if (reversing) {
-                        reversing = false;
+                    if (findWayOutReversing) {
+                        findWayOutReversing = false;
                     }
                     carController.turnRight();
                 }
                 break;
 
             case NORTH:
-                if (!checkNorthEast(currentView, currPos) && !reversing) {
+                if (!checkNorthEast(currentView, currPos) && !findWayOutReversing) {
                     this.foundRoadFrontRight = true;
                 }
 
-                if (reversing) {
+                // check if there is a path on the left hand side of the car when it is finding way out
+                if (findWayOutReversing) {
                     if (!checkWest(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
-                        reversing = false;
+                        findWayOutReversing = false;
                     }
 
-                } else if (!checkSouth(currentView, currPos) && checkEastSouth(currentView, currPos)
+                }
+
+                // one step away from wall (initially attaching wall)
+                // reverse, brake, forward and turn right so that the car will attach to another wall closer to it
+                else if (!checkSouth(currentView, currPos) && checkEastSouth(currentView, currPos)
                         && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
@@ -184,7 +215,9 @@ public class LatchingStrategy implements ExploringMove {
 
                     this.foundWallBottomRight = false;
 
-                } else if (checkWallAhead(orientation, currentView, currPos)) {
+                }
+
+                else if (checkWallAhead(orientation, currentView, currPos)) {
                     if (this.foundRoadFrontRight) {
                         this.foundRoadFrontRight = false;
                         carController.turnRight();
@@ -197,26 +230,33 @@ public class LatchingStrategy implements ExploringMove {
                         carController.applyBrake();
                     }
                 }
+
+                // turn right if nothing blocking on the right side of the car
                 else if (!checkEast(currentView, currPos)) {
-                    if (reversing) {
-                        reversing = false;
+                    if (findWayOutReversing) {
+                        findWayOutReversing = false;
                     }
                     carController.turnRight();
                 }
                 break;
             case SOUTH:
-                if (!checkSouthWest(currentView, currPos) && !reversing) {
+                if (!checkSouthWest(currentView, currPos) && !findWayOutReversing) {
                     this.foundRoadFrontRight = true;
                 }
 
-                if (reversing) {
+                // check if there is a path on the left hand side of the car when it is finding way out
+                if (findWayOutReversing) {
                     if (!checkEast(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
-                        reversing = false;
+                        findWayOutReversing = false;
                     }
 
-                } else if (!checkNorth(currentView, currPos) && checkWestNorth(currentView, currPos)
+                }
+
+                // one step away from wall (initially attaching wall)
+                // reverse, brake, forward and turn right so that the car will attach to another wall closer to it
+                else if (!checkNorth(currentView, currPos) && checkWestNorth(currentView, currPos)
                         && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
@@ -226,7 +266,9 @@ public class LatchingStrategy implements ExploringMove {
                     carController.turnRight();
                     this.foundWallBottomRight = false;
 
-                } else if (checkWallAhead(orientation, currentView, currPos)) {
+                }
+
+                else if (checkWallAhead(orientation, currentView, currPos)) {
                     if (foundRoadFrontRight) {
 
                         carController.turnRight();
@@ -239,26 +281,35 @@ public class LatchingStrategy implements ExploringMove {
                         carController.applyReverseAcceleration();
                         carController.applyBrake();
                     }
-                } else if (!checkWest(currentView, currPos)) {
-                    if (reversing) {
-                        reversing = false;
+                }
+
+                // turn right if nothing blocking on the right side of the car
+                else if (!checkWest(currentView, currPos)) {
+                    if (findWayOutReversing) {
+                        findWayOutReversing = false;
                     }
                     carController.turnRight();
                 }
                 break;
+
             case WEST:
-                if (!checkWestNorth(currentView, currPos) && !reversing) {
+                if (!checkWestNorth(currentView, currPos) && !findWayOutReversing) {
                     this.foundRoadFrontRight = true;
                 }
 
-                if (reversing) {
+                // check if there is a path on the left hand side of the car when it is finding way out
+                if (findWayOutReversing) {
                     if (!checkSouth(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
-                        reversing = false;
+                        findWayOutReversing = false;
                     }
 
-                } else if (!checkEast(currentView, currPos) && checkNorthEast(currentView, currPos)
+                }
+
+                // one step away from wall (initially attaching wall)
+                // reverse, brake, forward and turn right so that the car will attach to another wall closer to it
+                else if (!checkEast(currentView, currPos) && checkNorthEast(currentView, currPos)
                         && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
@@ -280,9 +331,11 @@ public class LatchingStrategy implements ExploringMove {
                         carController.applyReverseAcceleration();
                         carController.applyBrake();
                     }
-                } else if (!checkNorth(currentView, currPos)) {
-                    if (reversing) {
-                        reversing = false;
+                }
+                // turn right if nothing blocking on the right side of the car
+                else if (!checkNorth(currentView, currPos)) {
+                    if (findWayOutReversing) {
+                        findWayOutReversing = false;
                     }
                     carController.turnRight();
                 }
@@ -292,7 +345,11 @@ public class LatchingStrategy implements ExploringMove {
         }
     }
 
-    // find path to get out when a wall is ahead
+    /**
+     * Find way out when stuck in the corner.
+     *
+     * @param carController the car controller
+     */
     private void findWayOut(MyAutoController carController) {
         WorldSpatial.Direction orientation = carController.getOrientation();
         HashMap<Coordinate, MapTile> currentView = carController.getView();
@@ -300,73 +357,93 @@ public class LatchingStrategy implements ExploringMove {
 
         switch(orientation) {
             case EAST:
-                if (!checkNorth(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
+
+                // turn to desired direction when the car is moving forward
+                if (!checkNorth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnLeft();
-                } else if (!checkSouth(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
+                } else if (!checkSouth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnRight();
-                } else {
-                    // stuck in the edge
+                }
+
+                // stuck in the corner
+                else {
+
                     carController.applyReverseAcceleration();
-                    this.reversing = true;
+                    this.findWayOutReversing = true;
 
                     if (!checkNorth(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
-                        this.reversing = false;
+                        this.findWayOutReversing = false;
 
                     }
                 }
                 break;
 
             case NORTH:
-                if (!checkWest(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
+
+                // turn to desired direction when the car is moving forward
+                if (!checkWest(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnLeft();
-                } else if (!checkEast(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
+                } else if (!checkEast(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnRight();
-                } else {
-                    // stuck in the edge
+                }
+
+                // stuck in the corner
+                else {
+
                     carController.applyReverseAcceleration();
-                    this.reversing = true;
+                    this.findWayOutReversing = true;
 
                     if (!checkWest(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
-                        this.reversing = false;
+                        this.findWayOutReversing = false;
 
                     }
                 }
                 break;
 
             case SOUTH:
-                if (!checkEast(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
+
+                // turn to desired direction when the car is moving forward
+                if (!checkEast(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnLeft();
-                } else if (!checkWest(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
+                } else if (!checkWest(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnRight();
-                } else {
+                }
+
+                // stuck in the corner
+                else {
                     carController.applyReverseAcceleration();
-                    this.reversing = true;
+                    this.findWayOutReversing = true;
 
                     if (!checkEast(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
-                        this.reversing = false;
+                        this.findWayOutReversing = false;
                     }
                 }
                 break;
 
             case WEST:
-                if (!checkSouth(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
+
+                // turn to desired direction when the car is moving forward
+                if (!checkSouth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnLeft();
-                } else if (!checkNorth(currentView, currPos) && carController.getSpeed() > 0 && !this.reversing) {
+                } else if (!checkNorth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnRight();
-                } else {
+                }
+
+                // stuck in the corner
+                else {
                     carController.applyReverseAcceleration();
-                    this.reversing = true;
+                    this.findWayOutReversing = true;
 
                     if (!checkSouth(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
-                        this.reversing = false;
+                        this.findWayOutReversing = false;
 
                     }
 
@@ -383,10 +460,11 @@ public class LatchingStrategy implements ExploringMove {
      * Check if you have a wall in front of you!
      * @param orientation the orientation we are in based on WorldSpatial
      * @param currentView what the car can currently see
+     * @param currPos
      * @return
      */
     private boolean checkWallAhead(WorldSpatial.Direction orientation, HashMap<Coordinate, MapTile> currentView,
-                                  String currPos){
+                                   String currPos){
         switch(orientation){
             case EAST:
                 return checkEast(currentView, currPos);
@@ -405,7 +483,8 @@ public class LatchingStrategy implements ExploringMove {
      * Check if the wall is on your right hand side given your orientation
      * @param orientation
      * @param currentView
-     * @return
+     * @param currPos
+     * @return boolean
      */
     private boolean checkFollowingWall(WorldSpatial.Direction orientation, HashMap<Coordinate, MapTile> currentView,
                                        String currPos) {
@@ -425,113 +504,104 @@ public class LatchingStrategy implements ExploringMove {
     }
 
     /**
-     * Method below just iterates through the list and check in the correct coordinates.
-     * i.e. Given your current position is 10,10
-     * checkEast will check up to wallSensitivity amount of tiles to the right.
-     * checkWest will check up to wallSensitivity amount of tiles to the left.
-     * checkNorth will check up to wallSensitivity amount of tiles to the top.
-     * checkSouth will check up to wallSensitivity amount of tiles below.
+     * Method below are used to check whether the particular tile is blocking the way of the car.
+     * checkEast will check up the tile to the right.
+     * checkEastSouth will check up the tile on the bottom right.
+     * checkWest will check up the tile to the left.
+     * checkWestNorth will check up the tile on top left.
+     * checkNorth will check up the tile to the top.
+     * checkNorthEast will check up tile on the top right.
+     * checkSouth will check up tile below.
+     * checkSouthWest will check tile on the bottom left.
      */
     private boolean checkEast(HashMap<Coordinate, MapTile> currentView, String currPos){
         // Check tiles to my right
         Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x+i, currentPosition.y));
-
-            if (isBlocked(tile)) {
-                return true;
-            }
+        MapTile tile = currentView.get(new Coordinate(currentPosition.x+ oneStep, currentPosition.y));
+        if (isBlocked(tile)) {
+            return true;
         }
+
         return false;
     }
 
-
-
     private boolean checkEastSouth(HashMap<Coordinate, MapTile> currentView, String currPos) {
-        // Check tiles to my right
+        // Check tiles to my bottom right
         Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x+i, currentPosition.y-i));
+        MapTile tile = currentView.get(new Coordinate(currentPosition.x+ oneStep, currentPosition.y- oneStep));
 
-            if (isBlocked(tile)) {
-                return true;
-            }
+        if (isBlocked(tile)) {
+            return true;
         }
+
         return false;
     }
 
     private boolean checkWest(HashMap<Coordinate,MapTile> currentView, String currPos){
         // Check tiles to my left
         Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x-i, currentPosition.y));
+        MapTile tile = currentView.get(new Coordinate(currentPosition.x- oneStep, currentPosition.y));
 
-            if (isBlocked(tile)) {
-                return true;
-            }
+        if (isBlocked(tile)) {
+            return true;
         }
+
         return false;
     }
 
     private boolean checkWestNorth(HashMap<Coordinate,MapTile> currentView, String currPos){
-        // Check tiles to my left
+        // Check tiles to my top left
         Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x-i, currentPosition.y+i));
+        MapTile tile = currentView.get(new Coordinate(currentPosition.x- oneStep, currentPosition.y+ oneStep));
 
-            if (isBlocked(tile)) {
-                return true;
-            }
+        if (isBlocked(tile)) {
+            return true;
         }
+
         return false;
     }
 
     private boolean checkNorth(HashMap<Coordinate,MapTile> currentView, String currPos){
         // Check tiles to towards the top
         Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y+i));
-            if (isBlocked(tile)) {
-                return true;
-            }
+        MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y+ oneStep));
+        if (isBlocked(tile)) {
+            return true;
         }
+
         return false;
     }
 
     private boolean checkNorthEast(HashMap<Coordinate, MapTile> currentView, String currPos) {
-        // Check tiles to towards the top
+        // Check tiles to towards the top right
         Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x+i, currentPosition.y+i));
-            if (isBlocked(tile)) {
-                return true;
-            }
-
+        MapTile tile = currentView.get(new Coordinate(currentPosition.x+ oneStep, currentPosition.y+ oneStep));
+        if (isBlocked(tile)) {
+            return true;
         }
+
         return false;
     }
 
     private boolean checkSouth(HashMap<Coordinate,MapTile> currentView, String currPos){
         // Check tiles towards the bottom
         Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y-i));
-            if (isBlocked(tile)) {
-                return true;
-            }
+        MapTile tile = currentView.get(new Coordinate(currentPosition.x, currentPosition.y- oneStep));
+        if (isBlocked(tile)) {
+            return true;
         }
+
         return false;
     }
 
     private boolean checkSouthWest(HashMap<Coordinate,MapTile> currentView, String currPos){
-        // Check tiles towards the bottom
+        // Check tiles towards the bottom left
         Coordinate currentPosition = new Coordinate(currPos);
-        for(int i = 0; i <= wallSensitivity; i++){
-            MapTile tile = currentView.get(new Coordinate(currentPosition.x-i, currentPosition.y-i));
-            if (isBlocked(tile)) {
-                return true;
-            }
+        MapTile tile = currentView.get(new Coordinate(currentPosition.x- oneStep, currentPosition.y- oneStep));
+        if (isBlocked(tile)) {
+            return true;
         }
+
         return false;
     }
 
@@ -566,6 +636,12 @@ public class LatchingStrategy implements ExploringMove {
         return "other";
     }
 
+    /**
+     * Gets priority remove index depends on their priority level
+     * LAVA > HEALTH > WATER
+     *
+     * @return the priority remove index
+     */
     private int getPriorityRemoveIndex() {
         final int WATER_REMOVE_PRIORITY_LEVEL = 1;
         final int HEALTH_REMOVE_PRIORITY_LEVEL = 2;
@@ -590,3 +666,4 @@ public class LatchingStrategy implements ExploringMove {
         return currPos;
     }
 }
+
