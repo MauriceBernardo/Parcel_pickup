@@ -405,7 +405,7 @@ public class LatchingStrategy implements ExploringMove {
      * @return
      */
     private boolean checkWallAhead(WorldSpatial.Direction orientation, HashMap<Coordinate, MapTile> currentView,
-                                   String currPos){
+                                  String currPos){
         switch(orientation){
             case EAST:
                 return checkEast(currentView, currPos);
