@@ -150,16 +150,22 @@ public class LatchingStrategy implements ExploringMove {
                     }
 
                 }
+
                 // one step away from wall (initially attaching wall)
+                // condition for reverse and brake :
+                // 1. back and front right of the car => not wall
+                // 2. back right of the car => wall
                 // reverse, brake, forward and turn right so that the car will attach to another wall closer to it
                 else if (!checkWest(currentView, currPos) && checkSouthWest(currentView, currPos)
-                        && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
+                         && !checkEastSouth(currentView, currPos) && carController.getSpeed() == 0
+                        && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
                     this.foundWallBottomRight = true;
 
                 } else if (this.foundWallBottomRight) {
                     carController.turnRight();
+                    carController.applyBrake();
                     this.foundWallBottomRight = false;
 
                 }
@@ -202,9 +208,13 @@ public class LatchingStrategy implements ExploringMove {
                 }
 
                 // one step away from wall (initially attaching wall)
+                // condition for reverse and brake :
+                // 1. back and front right of the car => not wall
+                // 2. back right of the car => wall
                 // reverse, brake, forward and turn right so that the car will attach to another wall closer to it
                 else if (!checkSouth(currentView, currPos) && checkEastSouth(currentView, currPos)
-                        && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
+                         && !checkNorthEast(currentView, currPos) && carController.getSpeed() == 0
+                        && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
                     this.foundWallBottomRight = true;
@@ -212,6 +222,7 @@ public class LatchingStrategy implements ExploringMove {
                 } else if (this.foundWallBottomRight) {
 
                     carController.turnRight();
+                    carController.applyBrake();
 
                     this.foundWallBottomRight = false;
 
@@ -255,17 +266,21 @@ public class LatchingStrategy implements ExploringMove {
                 }
 
                 // one step away from wall (initially attaching wall)
+                // condition for reverse and brake :
+                // 1. back and front right of the car => not wall
+                // 2. back right of the car => wall
                 // reverse, brake, forward and turn right so that the car will attach to another wall closer to it
                 else if (!checkNorth(currentView, currPos) && checkWestNorth(currentView, currPos)
-                        && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
+                         && !checkSouthWest(currentView, currPos) && carController.getSpeed() == 0
+                        && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
                     this.foundWallBottomRight = true;
 
                 } else if (this.foundWallBottomRight) {
                     carController.turnRight();
+                    carController.applyBrake();
                     this.foundWallBottomRight = false;
-
                 }
 
                 else if (checkWallAhead(orientation, currentView, currPos)) {
@@ -292,6 +307,7 @@ public class LatchingStrategy implements ExploringMove {
                 }
                 break;
 
+
             case WEST:
                 if (!checkWestNorth(currentView, currPos) && !findWayOutReversing) {
                     this.foundRoadFrontRight = true;
@@ -308,15 +324,21 @@ public class LatchingStrategy implements ExploringMove {
                 }
 
                 // one step away from wall (initially attaching wall)
+                // condition for reverse and brake :
+                // 1. back and front right of the car => not wall
+                // 2. back right of the car => wall
                 // reverse, brake, forward and turn right so that the car will attach to another wall closer to it
                 else if (!checkEast(currentView, currPos) && checkNorthEast(currentView, currPos)
-                        && carController.getSpeed() == 0 && !this.foundWallBottomRight) {
+                        && !checkWestNorth(currentView, currPos) && carController.getSpeed() == 0
+                        && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
                     this.foundWallBottomRight = true;
 
                 } else if (this.foundWallBottomRight) {
                     carController.turnRight();
+                    carController.applyBrake();
+
 
                     this.foundWallBottomRight = false;
 
