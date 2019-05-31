@@ -148,6 +148,10 @@ public class LatchingStrategy implements ExploringMove {
                         carController.applyBrake();
                         findWayOutReversing = false;
                     }
+                    // when the car hits a wall
+                    else if (checkWest(currentView, currPos) && !checkSouth(currentView, currPos)) {
+                        carController.turnRight();
+                    }
 
                 }
 
@@ -157,7 +161,7 @@ public class LatchingStrategy implements ExploringMove {
                 // 2. back right of the car => wall
                 // reverse, brake, forward and turn right so that the car will attach to another wall closer to it
                 else if (!checkWest(currentView, currPos) && checkSouthWest(currentView, currPos)
-                         && !checkEastSouth(currentView, currPos) && carController.getSpeed() == 0
+                        && !checkEastSouth(currentView, currPos) && carController.getSpeed() == 0
                         && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
@@ -193,7 +197,7 @@ public class LatchingStrategy implements ExploringMove {
                 break;
 
             case NORTH:
-                if (!checkNorthEast(currentView, currPos) && !findWayOutReversing) {
+                if (checkNorthEast(currentView, currPos) && !findWayOutReversing) {
                     this.foundRoadFrontRight = true;
                 }
 
@@ -204,7 +208,10 @@ public class LatchingStrategy implements ExploringMove {
                         carController.applyBrake();
                         findWayOutReversing = false;
                     }
-
+                    // when the car hits a wall
+                    else if (checkSouth(currentView, currPos) && !checkEast(currentView, currPos)) {
+                        carController.turnRight();
+                    }
                 }
 
                 // one step away from wall (initially attaching wall)
@@ -213,14 +220,13 @@ public class LatchingStrategy implements ExploringMove {
                 // 2. back right of the car => wall
                 // reverse, brake, forward and turn right so that the car will attach to another wall closer to it
                 else if (!checkSouth(currentView, currPos) && checkEastSouth(currentView, currPos)
-                         && !checkNorthEast(currentView, currPos) && carController.getSpeed() == 0
+                        && !checkNorthEast(currentView, currPos) && carController.getSpeed() == 0
                         && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
                     this.foundWallBottomRight = true;
 
                 } else if (this.foundWallBottomRight) {
-
                     carController.turnRight();
                     carController.applyBrake();
 
@@ -262,7 +268,10 @@ public class LatchingStrategy implements ExploringMove {
                         carController.applyBrake();
                         findWayOutReversing = false;
                     }
-
+                    // when the car hits a wall
+                    else if (checkNorth(currentView, currPos) && !checkWest(currentView, currPos)) {
+                        carController.turnRight();
+                    }
                 }
 
                 // one step away from wall (initially attaching wall)
@@ -271,7 +280,7 @@ public class LatchingStrategy implements ExploringMove {
                 // 2. back right of the car => wall
                 // reverse, brake, forward and turn right so that the car will attach to another wall closer to it
                 else if (!checkNorth(currentView, currPos) && checkWestNorth(currentView, currPos)
-                         && !checkSouthWest(currentView, currPos) && carController.getSpeed() == 0
+                        && !checkSouthWest(currentView, currPos) && carController.getSpeed() == 0
                         && !this.foundWallBottomRight) {
                     carController.applyReverseAcceleration();
                     carController.applyBrake();
@@ -320,7 +329,10 @@ public class LatchingStrategy implements ExploringMove {
                         carController.applyBrake();
                         findWayOutReversing = false;
                     }
-
+                    // when the car hits a wall
+                    else if (checkEast(currentView, currPos) && !checkNorth(currentView, currPos)) {
+                        carController.turnRight();
+                    }
                 }
 
                 // one step away from wall (initially attaching wall)
@@ -381,95 +393,125 @@ public class LatchingStrategy implements ExploringMove {
             case EAST:
 
                 // turn to desired direction when the car is moving forward
-                if (!checkNorth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
-                    carController.turnLeft();
-                } else if (!checkSouth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
+                if (!checkSouth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnRight();
+                } else if (!checkNorth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
+                    carController.turnLeft();
                 }
 
                 // stuck in the corner
                 else {
 
                     carController.applyReverseAcceleration();
-                    this.findWayOutReversing = true;
 
                     if (!checkNorth(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
                         this.findWayOutReversing = false;
-
+                        break;
                     }
+                    // reverse and hit the wall
+                    else if (checkWest(currentView, currPos)) {
+                        carController.applyBrake();
+                        this.findWayOutReversing = false;
+                        break;
+                    }
+
+                    this.findWayOutReversing = true;
                 }
                 break;
 
             case NORTH:
 
                 // turn to desired direction when the car is moving forward
-                if (!checkWest(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
-                    carController.turnLeft();
-                } else if (!checkEast(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
+                if (!checkEast(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnRight();
+                } else if (!checkWest(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
+                    carController.turnLeft();
                 }
 
                 // stuck in the corner
                 else {
 
                     carController.applyReverseAcceleration();
-                    this.findWayOutReversing = true;
 
                     if (!checkWest(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
                         this.findWayOutReversing = false;
-
+                        break;
                     }
+                    // reverse and hit the wall
+                    else if (checkSouth(currentView, currPos)) {
+                        carController.applyBrake();
+                        this.findWayOutReversing = false;
+                        break;
+                    }
+
+                    this.findWayOutReversing = true;
                 }
                 break;
 
             case SOUTH:
 
                 // turn to desired direction when the car is moving forward
-                if (!checkEast(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
-                    carController.turnLeft();
-                } else if (!checkWest(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
+                if (!checkWest(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnRight();
+                } else if (!checkEast(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
+                    carController.turnLeft();
                 }
 
                 // stuck in the corner
                 else {
                     carController.applyReverseAcceleration();
-                    this.findWayOutReversing = true;
 
                     if (!checkEast(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
                         this.findWayOutReversing = false;
+                        break;
                     }
+                    // reverse and hit the wall
+                    else if (checkNorth(currentView, currPos)) {
+                        carController.applyBrake();
+                        this.findWayOutReversing = false;
+                        break;
+                    }
+
+                    this.findWayOutReversing = true;
                 }
+
                 break;
 
             case WEST:
 
                 // turn to desired direction when the car is moving forward
-                if (!checkSouth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
-                    carController.turnLeft();
-                } else if (!checkNorth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
+                if (!checkNorth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
                     carController.turnRight();
+                } else if (!checkSouth(currentView, currPos) && carController.getSpeed() > 0 && !this.findWayOutReversing) {
+                    carController.turnLeft();
                 }
 
                 // stuck in the corner
                 else {
                     carController.applyReverseAcceleration();
-                    this.findWayOutReversing = true;
 
                     if (!checkSouth(currentView, currPos)) {
                         carController.turnRight();
                         carController.applyBrake();
                         this.findWayOutReversing = false;
-
+                        break;
+                    }
+                    // reverse and hit the wall
+                    else if (checkEast(currentView, currPos)) {
+                        carController.applyBrake();
+                        this.findWayOutReversing = false;
+                        break;
                     }
 
+                    this.findWayOutReversing = true;
                 }
+
                 break;
 
             default:
