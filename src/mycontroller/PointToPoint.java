@@ -1,6 +1,6 @@
-package utilities;
+package mycontroller;
 
-import mycontroller.MyAutoController;
+import utilities.Coordinate;
 import world.WorldSpatial;
 
 import java.util.LinkedList;
@@ -30,22 +30,22 @@ public class PointToPoint {
     private boolean checkForward(Coordinate sourceCoordinate, Coordinate destCoordinate, WorldSpatial.Direction orientation) {
         switch (orientation) {
             case EAST:
-                if (sourceCoordinate.getRightCoordinate().equals(destCoordinate.toString())) {
+                if (getRightCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case WEST:
-                if (sourceCoordinate.getLeftCoordinate().equals(destCoordinate.toString())) {
+                if (getLeftCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case NORTH:
-                if (sourceCoordinate.getUpCoordinate().equals(destCoordinate.toString())) {
+                if (getUpCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case SOUTH:
-                if (sourceCoordinate.getDownCoordinate().equals(destCoordinate.toString())) {
+                if (getDownCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
@@ -57,22 +57,22 @@ public class PointToPoint {
     private boolean checkReverse(Coordinate sourceCoordinate, Coordinate destCoordinate, WorldSpatial.Direction orientation) {
         switch (orientation) {
             case EAST:
-                if (sourceCoordinate.getLeftCoordinate().equals(destCoordinate.toString())) {
+                if (getLeftCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case WEST:
-                if (sourceCoordinate.getRightCoordinate().equals(destCoordinate.toString())) {
+                if (getRightCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case NORTH:
-                if (sourceCoordinate.getDownCoordinate().equals(destCoordinate.toString())) {
+                if (getDownCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case SOUTH:
-                if (sourceCoordinate.getUpCoordinate().equals(destCoordinate.toString())) {
+                if (getUpCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
@@ -84,22 +84,22 @@ public class PointToPoint {
     private boolean checkRight(Coordinate sourceCoordinate, Coordinate destCoordinate, WorldSpatial.Direction orientation) {
         switch (orientation) {
             case EAST:
-                if (sourceCoordinate.getDownCoordinate().equals(destCoordinate.toString())) {
+                if (getDownCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case WEST:
-                if (sourceCoordinate.getUpCoordinate().equals(destCoordinate.toString())) {
+                if (getUpCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case NORTH:
-                if (sourceCoordinate.getRightCoordinate().equals(destCoordinate.toString())) {
+                if (getRightCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case SOUTH:
-                if (sourceCoordinate.getLeftCoordinate().equals(destCoordinate.toString())) {
+                if (getLeftCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
@@ -111,22 +111,22 @@ public class PointToPoint {
     private boolean checkLeft(Coordinate sourceCoordinate, Coordinate destCoordinate, WorldSpatial.Direction orientation) {
         switch (orientation) {
             case EAST:
-                if (sourceCoordinate.getUpCoordinate().equals(destCoordinate.toString())) {
+                if (getUpCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case WEST:
-                if (sourceCoordinate.getDownCoordinate().equals(destCoordinate.toString())) {
+                if (getDownCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case NORTH:
-                if (sourceCoordinate.getLeftCoordinate().equals(destCoordinate.toString())) {
+                if (getLeftCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
             case SOUTH:
-                if (sourceCoordinate.getRightCoordinate().equals(destCoordinate.toString())) {
+                if (getRightCoordinate(sourceCoordinate).equals(destCoordinate.toString())) {
                     return true;
                 }
                 break;
@@ -151,19 +151,19 @@ public class PointToPoint {
         // Decide whether using reverse translate or forward translate from the orientation
         if (!clonePathCoordinate.isEmpty()) {
             Coordinate nextCoordinate = clonePathCoordinate.peek();
-            if (sourceCoordinate.getLeftCoordinate().equals(nextCoordinate.toString())) {
+            if (getLeftCoordinate(sourceCoordinate).equals(nextCoordinate.toString())) {
                 if (orientation == WorldSpatial.Direction.EAST) {
                     forward = false;
                 }
-            } else if (sourceCoordinate.getRightCoordinate().equals(nextCoordinate.toString())) {
+            } else if (getRightCoordinate(sourceCoordinate).equals(nextCoordinate.toString())) {
                 if (orientation == WorldSpatial.Direction.WEST) {
                     forward = false;
                 }
-            } else if (sourceCoordinate.getUpCoordinate().equals(nextCoordinate.toString())) {
+            } else if (getUpCoordinate(sourceCoordinate).equals(nextCoordinate.toString())) {
                 if (orientation == WorldSpatial.Direction.SOUTH) {
                     forward = false;
                 }
-            } else if (sourceCoordinate.getDownCoordinate().equals(nextCoordinate.toString())) {
+            } else if (getDownCoordinate(sourceCoordinate).equals(nextCoordinate.toString())) {
                 if (orientation == WorldSpatial.Direction.NORTH) {
                     forward = false;
                 }
@@ -285,5 +285,25 @@ public class PointToPoint {
             return false;
         }
         return true;
+    }
+
+    // get the direct west coordinate of a Coordinate
+    public String getLeftCoordinate(Coordinate coordinate){
+        return (coordinate.x-1)+","+coordinate.y;
+    }
+
+    // get the direct east coordinate of a Coordinate
+    public String getRightCoordinate(Coordinate coordinate){
+        return (coordinate.x+1)+","+coordinate.y;
+    }
+
+    // get the direct north coordinate of a Coordinate
+    public String getUpCoordinate(Coordinate coordinate){
+        return coordinate.x+","+(coordinate.y+1);
+    }
+
+    // get the direct south coordinate of a Coordinate
+    public String getDownCoordinate(Coordinate coordinate){
+        return coordinate.x+","+(coordinate.y-1);
     }
 }

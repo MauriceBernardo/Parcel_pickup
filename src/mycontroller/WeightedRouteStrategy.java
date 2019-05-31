@@ -4,7 +4,6 @@ import tiles.LavaTrap;
 import tiles.MapTile;
 import tiles.TrapTile;
 import utilities.Coordinate;
-import utilities.PointToPoint;
 import world.WorldSpatial;
 
 import java.util.*;
@@ -176,16 +175,16 @@ public class WeightedRouteStrategy implements PointToPointMove {
             pathCoordinate.push(nextPoint.coordinate);
             switch (nextPoint.source) {
                 case UP:
-                    nextPoint = weightMap.get(new Coordinate(nextPoint.coordinate.getUpCoordinate()));
+                    nextPoint = weightMap.get(new Coordinate(pointToPointAdvisor.getUpCoordinate(nextPoint.coordinate)));
                     break;
                 case DOWN:
-                    nextPoint = weightMap.get(new Coordinate(nextPoint.coordinate.getDownCoordinate()));
+                    nextPoint = weightMap.get(new Coordinate(pointToPointAdvisor.getDownCoordinate(nextPoint.coordinate)));
                     break;
                 case LEFT:
-                    nextPoint = weightMap.get(new Coordinate(nextPoint.coordinate.getLeftCoordinate()));
+                    nextPoint = weightMap.get(new Coordinate(pointToPointAdvisor.getLeftCoordinate(nextPoint.coordinate)));
                     break;
                 case RIGHT:
-                    nextPoint = weightMap.get(new Coordinate(nextPoint.coordinate.getRightCoordinate()));
+                    nextPoint = weightMap.get(new Coordinate(pointToPointAdvisor.getRightCoordinate(nextPoint.coordinate)));
                     break;
                 case IMPASSABLE:
                     return false;
@@ -218,10 +217,10 @@ public class WeightedRouteStrategy implements PointToPointMove {
             weightMap.put(nextPoint.coordinate, nextPoint);
 
             // get 4 direction of a point
-            Coordinate eastCoordinate = new Coordinate(nextPoint.coordinate.getRightCoordinate());
-            Coordinate westCoordinate = new Coordinate(nextPoint.coordinate.getLeftCoordinate());
-            Coordinate northCoordinate = new Coordinate(nextPoint.coordinate.getUpCoordinate());
-            Coordinate southCoordinate = new Coordinate(nextPoint.coordinate.getDownCoordinate());
+            Coordinate eastCoordinate = new Coordinate(pointToPointAdvisor.getRightCoordinate(nextPoint.coordinate));
+            Coordinate westCoordinate = new Coordinate(pointToPointAdvisor.getLeftCoordinate(nextPoint.coordinate));
+            Coordinate northCoordinate = new Coordinate(pointToPointAdvisor.getUpCoordinate(nextPoint.coordinate));
+            Coordinate southCoordinate = new Coordinate(pointToPointAdvisor.getDownCoordinate(nextPoint.coordinate));
 
             // initialize all distance as unreachable
             int northDist = UNREACHABLE;
