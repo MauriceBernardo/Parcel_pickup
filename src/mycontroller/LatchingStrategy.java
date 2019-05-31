@@ -57,6 +57,10 @@ public class LatchingStrategy implements ExploringMove {
                 carController.applyForwardAcceleration();
             }
 
+            if (checkRoadFrontRight(carController)) {
+                this.foundRoadFrontRight = true;
+            }
+
             // search for wall to attach
             if (!checkFollowingWall(orientation, currentView, currPos)) {
                 if (this.initialCoordinate == null) {
@@ -137,9 +141,6 @@ public class LatchingStrategy implements ExploringMove {
 
         switch(orientation) {
             case EAST:
-                if (!checkEastSouth(currentView, currPos) && !findWayOutReversing) {
-                    this.foundRoadFrontRight = true;
-                }
 
                 // check if there is a path on the left hand side of the car when it is finding way out
                 if (findWayOutReversing) {
@@ -197,9 +198,6 @@ public class LatchingStrategy implements ExploringMove {
                 break;
 
             case NORTH:
-                if (checkNorthEast(currentView, currPos) && !findWayOutReversing) {
-                    this.foundRoadFrontRight = true;
-                }
 
                 // check if there is a path on the left hand side of the car when it is finding way out
                 if (findWayOutReversing) {
@@ -257,9 +255,6 @@ public class LatchingStrategy implements ExploringMove {
                 }
                 break;
             case SOUTH:
-                if (!checkSouthWest(currentView, currPos) && !findWayOutReversing) {
-                    this.foundRoadFrontRight = true;
-                }
 
                 // check if there is a path on the left hand side of the car when it is finding way out
                 if (findWayOutReversing) {
@@ -318,9 +313,6 @@ public class LatchingStrategy implements ExploringMove {
 
 
             case WEST:
-                if (!checkWestNorth(currentView, currPos) && !findWayOutReversing) {
-                    this.foundRoadFrontRight = true;
-                }
 
                 // check if there is a path on the left hand side of the car when it is finding way out
                 if (findWayOutReversing) {
@@ -377,6 +369,38 @@ public class LatchingStrategy implements ExploringMove {
             default:
                 break;
         }
+    }
+
+    private boolean checkRoadFrontRight(MyAutoController carController) {
+        WorldSpatial.Direction orientation = carController.getOrientation();
+        HashMap<Coordinate, MapTile> currentView = carController.getView();
+        String currPos = carController.getPosition();
+        boolean found = false;
+
+        switch (orientation) {
+
+            case EAST:
+                if (!checkEastSouth(currentView, currPos) && !findWayOutReversing) {
+                    found = true;
+                }
+
+            case NORTH:
+                if (!checkNorthEast(currentView, currPos) && !findWayOutReversing) {
+                    found = true;
+                }
+
+            case SOUTH:
+                if (!checkSouthWest(currentView, currPos) && !findWayOutReversing) {
+                    found = true;
+                }
+
+            case WEST:
+                if (!checkWestNorth(currentView, currPos) && !findWayOutReversing) {
+                    found = true;
+                }
+        }
+
+        return found;
     }
 
     /**
